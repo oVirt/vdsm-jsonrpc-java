@@ -183,6 +183,12 @@ cp client/pom.xml "%{buildroot}%{maven2brewrepodir}/%{name}/%{name}-client-%{pac
 %endif
 
 %changelog
+* Sun Jan 25 2015 Piotr Kliczewski<pkliczew@redhat.com> 1.0.15
+- make sure that we have data to remove from
+- packaging: drop release_suffix for ga release
+- Make sure that git and timestamp is not part of rpm name
+- Making version number release final
+
 * Mon Dec 22 2014 Piotr Kliczewski<pkliczew@redhat.com> 1.0.14
 - NPE when removing empty tracked request
 
