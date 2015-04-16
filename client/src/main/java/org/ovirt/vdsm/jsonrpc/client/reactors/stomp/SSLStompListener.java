@@ -1,6 +1,7 @@
 package org.ovirt.vdsm.jsonrpc.client.reactors.stomp;
 
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_DESTINATION;
+import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_HOST;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 
 import java.io.IOException;
@@ -49,6 +50,11 @@ public class SSLStompListener extends SSLStompClient implements Sender {
         String command = message.getCommand();
         CommandExecutor executor = this.commandFactory.getCommandExecutor(command);
         Message response = executor.execute(message);
+        if (Command.CONNECT.toString().equals(command)) {
+            if (message.getHeaders().get(HEADER_HOST) != null) {
+                policy.setIdentifier(message.getHeaders().get(HEADER_HOST));
+            }
+        }
         if (response != null) {
             this.send(response.build());
         }

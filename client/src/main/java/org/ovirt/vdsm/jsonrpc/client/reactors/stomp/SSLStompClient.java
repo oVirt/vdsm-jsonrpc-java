@@ -1,10 +1,6 @@
 package org.ovirt.vdsm.jsonrpc.client.reactors.stomp;
 
-import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_ACCEPT;
-import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_ACK;
-import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_DESTINATION;
-import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_HEART_BEAT;
-import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.HEADER_ID;
+import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.*;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.reduceGracePeriod;
 
 import java.nio.channels.Selector;
@@ -32,7 +28,7 @@ public class SSLStompClient extends SSLClient {
                 subscribed = new CountDownLatch(1);
             }
 
-            Message message = new Message().connect().withHeader(HEADER_ACCEPT, "1.2");
+            Message message = new Message().connect().withHeader(HEADER_ACCEPT, "1.2").withHeader(HEADER_HOST, policy.getIdentifier());
             if (policy.isHeartbeat()) {
                 message.withHeader(HEADER_HEART_BEAT, 0 + "," + reduceGracePeriod(policy.getHeartbeat()));
             }

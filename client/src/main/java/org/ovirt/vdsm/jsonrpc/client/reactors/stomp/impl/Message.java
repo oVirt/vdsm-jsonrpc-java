@@ -40,6 +40,7 @@ public class Message {
     public static final String HEADER_CONTENT_LENGTH = "content-length";
     public static final String HEADER_CONTENT_TYPE = "content-type";
     public static final String HEADER_HEART_BEAT = "heart-beat";
+    public static final String HEADER_HOST = "host";
     public static final String END_OF_MESSAGE = "\000";
     private static final String CHARSET = ";charset=";
     private static final Log LOG = LogFactory.getLog(Message.class);

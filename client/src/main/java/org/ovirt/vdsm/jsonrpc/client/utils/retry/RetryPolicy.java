@@ -18,6 +18,7 @@ public class RetryPolicy {
     private List<Class<? extends Exception>> exceptions;
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
     private AtomicBoolean isHeartbeat = new AtomicBoolean(true);
+    private String identifier;
 
     /**
      * Create policy using provided values.
@@ -62,6 +63,10 @@ public class RetryPolicy {
         return this.timeUnit;
     }
 
+    public String getIdentifier() {
+        return identifier;
+    }
+
     public void setTimeUnit(TimeUnit timeUnit) {
         this.timeUnit = timeUnit;
     }
@@ -72,5 +77,9 @@ public class RetryPolicy {
 
     public void setHeartbeat(boolean isHeartbeat) {
         this.isHeartbeat.set(isHeartbeat);
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 }
