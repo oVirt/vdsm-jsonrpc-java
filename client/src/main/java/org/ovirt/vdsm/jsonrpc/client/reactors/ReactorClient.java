@@ -1,5 +1,6 @@
 package org.ovirt.vdsm.jsonrpc.client.reactors;
 
+import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.getCauseMessage;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.getTimeout;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 
@@ -24,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
@@ -134,7 +134,7 @@ public abstract class ReactorClient {
             postConnect(getPostConnectCallback());
         } catch (InterruptedException | ExecutionException e) {
             logException(log, "Exception during connection", e);
-            final String message = "Connection issue " + ExceptionUtils.getRootCause(e).getMessage();
+            final String message = "Connection issue " + getCauseMessage(e);
             scheduleClose(message);
             throw new ClientConnectionException(e);
         } catch (IOException e) {

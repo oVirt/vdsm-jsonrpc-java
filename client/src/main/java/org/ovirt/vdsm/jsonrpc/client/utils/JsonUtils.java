@@ -144,4 +144,13 @@ public class JsonUtils {
         }
         return ids;
     }
+
+    public static String getCauseMessage(Throwable e) {
+        Throwable cause = e;
+
+        while(cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        return cause.getMessage();
+    }
 }
