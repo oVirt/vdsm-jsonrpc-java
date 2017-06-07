@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
@@ -72,7 +71,7 @@ public class Message {
 
     public Message withCorrelationId() {
         String correlationId = MDC.get(HEADER_CORRELATION_ID);
-        if (StringUtils.isNotBlank(correlationId)) {
+        if (!isEmpty(correlationId)) {
             withHeader(HEADER_CORRELATION_ID, correlationId);
         }
         return this;
