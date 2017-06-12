@@ -2,10 +2,13 @@ package org.ovirt.vdsm.jsonrpc.client;
 
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.getTimeout;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.jsonToByteArray;
+import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.mapValues;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.node.NullNode;
@@ -15,6 +18,7 @@ import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.JsonRpcCall;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseTracker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
+import org.ovirt.vdsm.jsonrpc.client.utils.JsonResponseUtil;
 import org.ovirt.vdsm.jsonrpc.client.utils.ResponseTracking;
 import org.ovirt.vdsm.jsonrpc.client.utils.retry.RetryContext;
 import org.slf4j.Logger;
@@ -31,6 +35,7 @@ public class JsonRpcClient {
     private final ReactorClient client;
     private ResponseTracker tracker;
     private ClientPolicy policy;
+    private ScheduledExecutorService executorService;
 
     /**
      * Wraps {@link ReactorClient} to hide response update details.
@@ -67,6 +72,11 @@ public class JsonRpcClient {
         return this.client.getConnectionId();
     }
 
+    public void setExecutorService(ScheduledExecutorService executorService) {
+        this.executorService = executorService;
+        this.tracker.setExecutorService(executorService);
+    }
+
     /**
      * Sends single request and returns {@link Future} representation of {@link JsonRpcResponse}.
      *
@@ -77,6 +87,19 @@ public class JsonRpcClient {
      */
     public Future<JsonRpcResponse> call(JsonRpcRequest req) throws ClientConnectionException {
         final Call call = new Call(req);
+        this.tracker.registerCall(req, call);
+        retryCall(req, call);
+        try {
+            this.getClient().sendMessage(jsonToByteArray(req.toJson()));
+        } finally {
+            retryCall(req, call);
+        }
+        return call;
+    }
+
+    public Future<JsonRpcResponse> call(JsonRpcRequest req, BrokerCommandCallback callback)
+            throws ClientConnectionException {
+        final Call call = new Call(req, callback);
         this.tracker.registerCall(req, call);
         retryCall(req, call);
         try {
@@ -150,6 +173,17 @@ public class JsonRpcClient {
             return;
         }
         call.addResponse(response);
+        if (call.getCallback() != null && executorService != null) {
+            if (response.getError() != null) {
+                executorService.schedule(() -> call.getCallback().onFailure(mapValues(response.getError())),
+                        0,
+                        TimeUnit.SECONDS);
+            } else {
+                executorService.schedule(() -> call.getCallback().onResponse(new JsonResponseUtil().populate(response)),
+                        0,
+                        TimeUnit.SECONDS);
+            }
+        }
     }
 
     public void close() {

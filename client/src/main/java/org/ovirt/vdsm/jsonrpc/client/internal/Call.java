@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.codehaus.jackson.JsonNode;
+import org.ovirt.vdsm.jsonrpc.client.BrokerCommandCallback;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 
@@ -22,6 +23,10 @@ public class Call implements Future<JsonRpcResponse>, JsonRpcCall {
 
     public Call(JsonRpcRequest req) {
         this.batchCall = new BatchCall(Arrays.asList(req));
+    }
+
+    public Call(JsonRpcRequest req, BrokerCommandCallback callback) {
+        this.batchCall = new BatchCall(Arrays.asList(req), callback);
     }
 
     @Override
@@ -63,5 +68,10 @@ public class Call implements Future<JsonRpcResponse>, JsonRpcCall {
     @Override
     public boolean isDone() {
         return this.batchCall.isDone();
+    }
+
+    @Override
+    public BrokerCommandCallback getCallback() {
+        return batchCall.getCallback();
     }
 }

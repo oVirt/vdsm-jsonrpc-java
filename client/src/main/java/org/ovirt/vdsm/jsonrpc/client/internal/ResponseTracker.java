@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -45,6 +46,7 @@ public class ResponseTracker implements Runnable {
     private ConcurrentMap<String, List<JsonNode>> hostToId = new ConcurrentHashMap<>();
     private Queue<JsonNode> queue = new ConcurrentLinkedQueue<>();
     private final Lock lock = new ReentrantLock();
+    private ScheduledExecutorService executorService;
 
     public ResponseTracker() {
         this.isTracking = new AtomicBoolean(true);
@@ -132,15 +134,33 @@ public class ResponseTracker implements Runnable {
         }
     }
 
+    public void setExecutorService(ScheduledExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
     private void remove(ResponseTracking tracking, JsonNode id, JsonRpcResponse response) {
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
             JsonRpcCall call = this.runningCalls.remove(id);
+            boolean callbackNotified = false;
             if (call != null) {
                 call.addResponse(response);
+                if (call.getCallback() != null && executorService != null) {
+                    callbackNotified = true;
+                    executorService.schedule(() -> call.getCallback().onFailure(mapValues(response.getError())),
+                            0,
+                            TimeUnit.SECONDS);
+                }
             }
             removeRequestFromTracking(id);
-            if (tracking != null && tracking.getClient() != null) {
+            if (!callbackNotified && tracking != null && tracking.getClient() != null) {
                 tracking.getCall().addResponse(response);
+                if (tracking.getCall().getCallback() != null && executorService != null) {
+                    executorService.schedule(() -> tracking.getCall()
+                            .getCallback()
+                            .onFailure(mapValues(response.getError())),
+                            0,
+                            TimeUnit.SECONDS);
+                }
             }
         }
     }

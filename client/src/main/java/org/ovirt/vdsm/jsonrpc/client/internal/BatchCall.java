@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.codehaus.jackson.JsonNode;
+import org.ovirt.vdsm.jsonrpc.client.BrokerCommandCallback;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 
@@ -22,12 +23,18 @@ public class BatchCall implements Future<List<JsonRpcResponse>>, JsonRpcCall {
     private final CountDownLatch latch;
     private final List<JsonRpcResponse> responses;
     private final List<JsonNode> ids;
+    private BrokerCommandCallback callback;
 
     public BatchCall(List<JsonRpcRequest> requests) {
         this.ids = new ArrayList<>();
         this.responses = new ArrayList<>(requests.size());
         this.latch = new CountDownLatch(requests.size());
         updateIds(requests);
+    }
+
+    public BatchCall(List<JsonRpcRequest> requests, BrokerCommandCallback callback) {
+        this(requests);
+        this.callback = callback;
     }
 
     private void updateIds(List<JsonRpcRequest> requests) {
@@ -76,5 +83,10 @@ public class BatchCall implements Future<List<JsonRpcResponse>>, JsonRpcCall {
 
     public List<JsonNode> getId() {
         return this.ids;
+    }
+
+    @Override
+    public BrokerCommandCallback getCallback() {
+        return callback;
     }
 }
