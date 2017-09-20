@@ -125,6 +125,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Wed Sep 20 2017 Piotr Kliczewski <pkliczew@redhat.com> 1.4.7
+- Adding callbacks infrastructure to use non-blocking threads
+
 * Tue Apr 11 2017 Piotr Kliczewski <pkliczew@redhat.com> 1.4.6
 - send correlation id to the server
 
