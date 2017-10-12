@@ -24,7 +24,6 @@ import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 import org.ovirt.vdsm.jsonrpc.client.RequestAlreadySentException;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
 import org.ovirt.vdsm.jsonrpc.client.utils.ResponseTracking;
 import org.ovirt.vdsm.jsonrpc.client.utils.retry.RetryContext;
@@ -79,11 +78,14 @@ public class ResponseTracker implements Runnable {
         JsonNode id = req.getId();
         List<JsonNode> nodes = new CopyOnWriteArrayList<>();
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+            if (!tracking.getClient().isOpen()) {
+                return;
+            }
             this.map.put(id, tracking);
             this.queue.add(id);
             nodes.add(id);
             nodes = this.hostToId.putIfAbsent(tracking.getClient().getClientId(), nodes);
-            if (nodes != null) {
+            if (nodes != null && !nodes.contains(id)) {
                 nodes.add(id);
             }
         }
@@ -94,30 +96,34 @@ public class ResponseTracker implements Runnable {
         try {
             while (this.isTracking.get()) {
                 TimeUnit.MILLISECONDS.sleep(TRACKING_TIMEOUT);
-                for (JsonNode id : queue) {
-                    if (!this.runningCalls.containsKey(id)) {
-                        removeRequestFromTracking(id);
-                        continue;
-                    }
-                    ResponseTracking tracking = this.map.get(id);
-                    if (System.currentTimeMillis() >= tracking.getTimeout()) {
-                        RetryContext context = tracking.getContext();
-                        context.decreaseAttempts();
-                        if (context.getNumberOfAttempts() <= 0) {
-                            handleFailure(tracking, id);
-                            continue;
-                        }
-                        try {
-                            tracking.getClient().sendMessage(jsonToByteArray(tracking.getRequest().toJson()));
-                        } catch (ClientConnectionException e) {
-                            handleFailure(tracking, id);
-                        }
-                        tracking.setTimeout(getTimeout(context.getTimeout(), context.getTimeUnit()));
-                    }
-                }
+                loop();
             }
         } catch (InterruptedException e) {
             log.warn("Tracker thread intrreupted");
+        }
+    }
+
+    protected void loop() {
+        for (JsonNode id : queue) {
+            if (!this.runningCalls.containsKey(id)) {
+                removeRequestFromTracking(id);
+                continue;
+            }
+            ResponseTracking tracking = this.map.get(id);
+            if (System.currentTimeMillis() >= tracking.getTimeout()) {
+                RetryContext context = tracking.getContext();
+                context.decreaseAttempts();
+                if (context.getNumberOfAttempts() <= 0) {
+                    handleFailure(tracking, id);
+                    continue;
+                }
+                try {
+                    tracking.getClient().sendMessage(jsonToByteArray(tracking.getRequest().toJson()));
+                } catch (ClientConnectionException e) {
+                    handleFailure(tracking, id);
+                }
+                tracking.setTimeout(getTimeout(context.getTimeout(), context.getTimeUnit()));
+            }
         }
     }
 
@@ -128,6 +134,7 @@ public class ResponseTracker implements Runnable {
     private void handleFailure(ResponseTracking tracking, JsonNode id) {
         remove(tracking, id, buildFailedResponse(tracking.getRequest()));
         if (tracking.isResetConnection()) {
+            this.hostToId.remove(tracking.getClient().getClientId());
             tracking.getClient().disconnect("Vds timeout occured");
         }
     }
@@ -151,16 +158,13 @@ public class ResponseTracker implements Runnable {
         String code = (String) map.get("code");
         String message = (String) map.get("message");
         JsonRpcResponse errorResponse = buildErrorResponse(null, 5022, message);
+        String hostname = code.substring(0, code.indexOf(":"));
 
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
-            if (ReactorClient.CLIENT_CLOSED.equals(message)) {
-                removeNodes(this.hostToId.get(code), errorResponse);
-            } else {
-                String hostname = code.substring(0, code.indexOf(":"));
-                this.hostToId.keySet().stream()
-                        .filter(key -> key.startsWith(hostname))
-                        .forEach(key -> removeNodes(this.hostToId.get(key), errorResponse));
-            }
+            this.hostToId.keySet().stream().filter(key -> key.startsWith(hostname)).forEach(key -> {
+                removeNodes(this.hostToId.get(key), errorResponse);
+                this.hostToId.remove(key);
+            });
         }
     }
 
@@ -168,5 +172,9 @@ public class ResponseTracker implements Runnable {
         nodes.stream()
                 .filter(id -> !NullNode.class.isInstance(id))
                 .forEach(id -> remove(this.map.get(id), id, errorResponse));
+    }
+
+    protected Map<String, List<JsonNode>> getHostMap() {
+        return this.hostToId;
     }
 }
