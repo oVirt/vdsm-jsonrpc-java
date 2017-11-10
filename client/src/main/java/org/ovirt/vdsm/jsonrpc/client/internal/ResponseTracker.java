@@ -24,6 +24,7 @@ import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 import org.ovirt.vdsm.jsonrpc.client.RequestAlreadySentException;
+import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
 import org.ovirt.vdsm.jsonrpc.client.utils.ResponseTracking;
 import org.ovirt.vdsm.jsonrpc.client.utils.retry.RetryContext;
@@ -78,9 +79,6 @@ public class ResponseTracker implements Runnable {
         JsonNode id = req.getId();
         List<JsonNode> nodes = new CopyOnWriteArrayList<>();
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
-            if (!tracking.getClient().isOpen()) {
-                return;
-            }
             this.map.put(id, tracking);
             this.queue.add(id);
             nodes.add(id);
@@ -134,7 +132,6 @@ public class ResponseTracker implements Runnable {
     private void handleFailure(ResponseTracking tracking, JsonNode id) {
         remove(tracking, id, buildFailedResponse(tracking.getRequest()));
         if (tracking.isResetConnection()) {
-            this.hostToId.remove(tracking.getClient().getClientId());
             tracking.getClient().disconnect("Vds timeout occured");
         }
     }
@@ -158,13 +155,15 @@ public class ResponseTracker implements Runnable {
         String code = (String) map.get("code");
         String message = (String) map.get("message");
         JsonRpcResponse errorResponse = buildErrorResponse(null, 5022, message);
-        String hostname = code.substring(0, code.indexOf(":"));
 
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
-            this.hostToId.keySet().stream().filter(key -> key.startsWith(hostname)).forEach(key -> {
-                removeNodes(this.hostToId.get(key), errorResponse);
-                this.hostToId.remove(key);
-            });
+            if (ReactorClient.CLIENT_CLOSED.equals(message)) {
+                removeNodes(this.hostToId.get(code), errorResponse);
+            } else {
+                String hostname = code.substring(0, code.indexOf(":"));
+                this.hostToId.keySet().stream().filter(key -> key.startsWith(hostname))
+                        .forEach(key -> removeNodes(this.hostToId.get(key), errorResponse));
+            }
         }
     }
 
