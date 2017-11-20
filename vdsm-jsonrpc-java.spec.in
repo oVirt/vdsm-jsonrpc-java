@@ -125,6 +125,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Thu Nov 20 2017 Piotr Kliczewski <pkliczew@redhat.com> 1.4.9
+- Release host level lock faster
+
 * Thu Oct 19 2017 Piotr Kliczewski <pkliczew@redhat.com> 1.4.8
 - host to id mapping needs to be cleared on failure
 
