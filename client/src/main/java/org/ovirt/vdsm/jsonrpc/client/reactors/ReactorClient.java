@@ -214,9 +214,14 @@ public abstract class ReactorClient {
 
     private void processHeartbeat() {
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExeeded()) {
-            log.debug("Heartbeat exceeded. Closing channel");
+            log.error("Heartbeat exceeded for host '{}', last response arrived {} ms ago.", getHostname(),
+                    getHeartbeatTime());
             this.disconnect("Heartbeat exceeded");
         }
+    }
+
+    private long getHeartbeatTime() {
+        return System.currentTimeMillis() - (this.lastIncomingHeartbeat + this.policy.getIncomingHeartbeat());
     }
 
     private boolean isIncomingHeartbeatExeeded() {
