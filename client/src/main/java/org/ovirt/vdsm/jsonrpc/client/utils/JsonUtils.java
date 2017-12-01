@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JsonUtils {
     public static final Charset UTF8 = Charset.forName("UTF-8");
-    private static final double GRACE_PERIOD = 0.2;
+    private static final double GRACE_PERIOD = 0.5;
     public static final String ALL = "*";
     public static final String SUBSCRIPTION_ALL = "*|*|*|*";
     private static Logger log = LoggerFactory.getLogger(JsonUtils.class);

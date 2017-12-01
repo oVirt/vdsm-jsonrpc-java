@@ -50,6 +50,7 @@ public abstract class ReactorClient {
     private final Lock lock;
     private long lastIncomingHeartbeat = 0;
     private long lastOutgoingHeartbeat = 0;
+    private boolean half = true;
     private AtomicBoolean closing = new AtomicBoolean();
     protected volatile ClientPolicy policy = new DefaultConnectionRetryPolicy();
     protected final List<MessageListener> eventListeners;
@@ -213,6 +214,11 @@ public abstract class ReactorClient {
     protected abstract void processIncoming() throws IOException, ClientConnectionException;
 
     private void processHeartbeat() {
+        int incoming = this.policy.getIncomingHeartbeat() / 2;
+        if (!this.isInInit() && getHeartbeatTime() > incoming && this.half) {
+            log.info("No heartbeat message arrived from host '{}' for {} ms.", getHostname(), incoming);
+            this.half = false;
+        }
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExeeded()) {
             log.error("Heartbeat exceeded for host '{}', last response arrived {} ms ago.", getHostname(),
                     getHeartbeatTime());
@@ -221,7 +227,7 @@ public abstract class ReactorClient {
     }
 
     private long getHeartbeatTime() {
-        return System.currentTimeMillis() - (this.lastIncomingHeartbeat + this.policy.getIncomingHeartbeat());
+        return System.currentTimeMillis() - this.lastIncomingHeartbeat;
     }
 
     private boolean isIncomingHeartbeatExeeded() {
@@ -229,6 +235,7 @@ public abstract class ReactorClient {
     }
 
     protected void updateLastIncomingHeartbeat() {
+        this.half = true;
         this.lastIncomingHeartbeat = System.currentTimeMillis();
     }
 
