@@ -44,6 +44,7 @@ public abstract class ReactorClient {
     }
     public static final String CLIENT_CLOSED = "Client close";
     public static final int BUFFER_SIZE = 1024;
+    private static final int LIMIT = 20000;
     private static Logger log = LoggerFactory.getLogger(ReactorClient.class);
     private final String hostname;
     private final int port;
@@ -215,8 +216,11 @@ public abstract class ReactorClient {
 
     private void processHeartbeat() {
         int incoming = this.policy.getIncomingHeartbeat() / 2;
+        if (incoming < LIMIT) {
+            incoming = LIMIT;
+        }
         if (!this.isInInit() && getHeartbeatTime() > incoming && this.half) {
-            log.info("No heartbeat message arrived from host '{}' for {} ms.", getHostname(), incoming);
+            log.info("No interaction with host '{}' for {} ms.", getHostname(), incoming);
             this.half = false;
         }
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExeeded()) {
