@@ -76,7 +76,7 @@ public class ResponseWorkerTestCase {
 
     @Test
     public void testNetworkIssue() throws InterruptedException {
-        JsonRpcResponse response = buildErrorResponse(null, "localhost:809653068", "Heartbeat exeeded");
+        JsonRpcResponse response = buildErrorResponse(null, "localhost:809653068", "Heartbeat exceeded");
         final CountDownLatch latch = new CountDownLatch(1);
 
         EventSubscriber subscriber = new EventSubscriber("localhost|virt|VM_status|*") {
@@ -97,7 +97,7 @@ public class ResponseWorkerTestCase {
             @Override
             public void onError(Throwable t) {
                 assertTrue(ClientConnectionException.class.isInstance(t));
-                assertEquals("Heartbeat exeeded", t.getMessage());
+                assertEquals("Heartbeat exceeded", t.getMessage());
                 latch.countDown();
             }
 

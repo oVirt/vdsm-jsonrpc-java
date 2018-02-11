@@ -223,7 +223,7 @@ public abstract class ReactorClient {
             log.info("No interaction with host '{}' for {} ms.", getHostname(), incoming);
             this.half = false;
         }
-        if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExeeded()) {
+        if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExceeded()) {
             String msg = String.format("Heartbeat exceeded for host '%s', last response arrived %s ms ago.",
                     getHostname(),
                     getHeartbeatTime());
@@ -236,7 +236,7 @@ public abstract class ReactorClient {
         return System.currentTimeMillis() - this.lastIncomingHeartbeat;
     }
 
-    private boolean isIncomingHeartbeatExeeded() {
+    private boolean isIncomingHeartbeatExceeded() {
         return this.lastIncomingHeartbeat + this.policy.getIncomingHeartbeat() < System.currentTimeMillis();
     }
 
@@ -305,13 +305,13 @@ public abstract class ReactorClient {
     }
 
     public void performAction() throws IOException, ClientConnectionException {
-        if (!this.isInInit() && this.policy.isOutgoingHeartbeat() && this.isOutgoingHeartbeatExeeded()) {
+        if (!this.isInInit() && this.policy.isOutgoingHeartbeat() && this.isOutgoingHeartbeatExceeded()) {
             this.sendHeartbeat();
             this.processOutgoing();
         }
     }
 
-    private boolean isOutgoingHeartbeatExeeded() {
+    private boolean isOutgoingHeartbeatExceeded() {
         return this.lastOutgoingHeartbeat + this.policy.getOutgoingHeartbeat() < System.currentTimeMillis();
     }
 
