@@ -102,10 +102,18 @@ public class JsonRpcClient {
         final Call call = new Call(req, callback);
         this.tracker.registerCall(req, call);
         retryCall(req, call);
+        boolean exceptionOccurred = false;
         try {
             this.getClient().sendMessage(jsonToByteArray(req.toJson()));
+        } catch (ClientConnectionException ex) {
+            exceptionOccurred = true;
+            throw ex;
         } finally {
-            retryCall(req, call);
+            if (exceptionOccurred) {
+                removeCall(call);
+            } else {
+                retryCall(req, call);
+            }
         }
         return call;
     }
