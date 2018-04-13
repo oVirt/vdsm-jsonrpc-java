@@ -1,0 +1,9 @@
+apache-commons-lang
+autoconf
+automake
+git
+jackson
+java-1.8.0-openjdk-devel
+slf4j
+yum-utils
+vim-minimal
