@@ -133,7 +133,7 @@ public class ResponseTracker implements Runnable {
 
     private void handleFailure(ResponseTracking tracking, JsonNode id) {
         remove(tracking, id, buildFailedResponse(tracking.getRequest()));
-        if (tracking.isResetConnection()) {
+        if (tracking.isResetConnection() && !tracking.getClient().isOpen()) {
             tracking.getClient().disconnect("Vds timeout occured");
         }
     }
