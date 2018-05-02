@@ -224,9 +224,11 @@ public abstract class ReactorClient {
             this.half = false;
         }
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExeeded()) {
-            log.error("Heartbeat exceeded for host '{}', last response arrived {} ms ago.", getHostname(),
+            String msg = String.format("Heartbeat exceeded for host '%s', last response arrived %s ms ago.",
+                    getHostname(),
                     getHeartbeatTime());
-            this.disconnect("Heartbeat exceeded");
+            log.error(msg);
+            this.disconnect(msg);
         }
     }
 
