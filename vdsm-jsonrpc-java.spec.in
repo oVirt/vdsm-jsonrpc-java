@@ -125,6 +125,10 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Wed May 9 2018 Piotr Kliczewski <pkliczew@redhat.com> 1.4.13
+- Rephrase Heartbeat exceeded error message
+- Connections shouldn't be closed after the connection to the host was recovered
+
 * Fri Apr 13 2018 Piotr Kliczewski <pkliczew@redhat.com> 1.4.12
 - Don't retry async calls on connection error
 
