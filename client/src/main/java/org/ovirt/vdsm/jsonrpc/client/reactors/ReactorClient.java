@@ -224,7 +224,7 @@ public abstract class ReactorClient {
             this.half = false;
         }
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExceeded()) {
-            String msg = String.format("Heartbeat exceeded for host '%s', last response arrived %s ms ago.",
+            String msg = String.format("Connection timeout for host '%s', last response arrived %s ms ago.",
                     getHostname(),
                     getHeartbeatTime());
             log.error(msg);
