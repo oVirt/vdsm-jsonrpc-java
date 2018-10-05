@@ -125,6 +125,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Fri Oct 5 2018 Piotr Kliczewski <pkliczew@redhat.com> - 1.4.15-2
+- packaging: spec: fix spec changelog
+
 * Fri Sep 14 2018 Piotr Kliczewski <pkliczew@redhat.com> - 1.4.15
 - All hosts stuck in connecting/not responding state until engine restarted
 
