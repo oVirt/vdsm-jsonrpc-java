@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -94,14 +95,42 @@ public class SubscriptionHolder {
     }
 
     /**
-     * Queues not processed event for later processing.
+     * Queues not processed event for later processing. When adding an event to the queue, set the arrival time of the
+     * event.
      *
      * @param event
      *            An event to be queued.
      */
     public void putEvent(JsonRpcEvent event) {
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+            event.setArrivalTime(System.nanoTime());
             this.events.addFirst(event);
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * Used by test case to count number of events
+     */
+    public int getNumberOfEvents() {
+        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+            return this.events.size();
+        }
+    }
+
+    /**
+     * Purge old events if they have not been consumed in a specified amount of time.
+     * @param eventTimeoutInHours the timeout after which the events are purged from the queue.
+     */
+    public void purgeOldEventsIfNotConsumed(int eventTimeoutInHours) {
+        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+            long threshold = System.nanoTime() - TimeUnit.HOURS.toNanos(eventTimeoutInHours);
+            // remove the last element if the element was created before threshold
+            while (!this.events.isEmpty() && this.events.peekLast().getArrivalTime() < threshold) {
+                // if the event is older than PURGE_TIME we remove the event
+                this.events.removeLast();
+            }
         }
     }
 

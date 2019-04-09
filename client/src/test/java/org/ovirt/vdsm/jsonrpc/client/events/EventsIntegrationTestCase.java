@@ -35,6 +35,7 @@ public class EventsIntegrationTestCase {
     private static final String HOSTNAME = "localhost";
     private static final int PORT = 0;
     private static final int LIMIT = 10;
+    private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
     private Reactor sendingReactor;
     private Reactor listeningReactor;
@@ -73,7 +74,7 @@ public class EventsIntegrationTestCase {
         client.setClientPolicy(
                 new StompClientPolicy(180000, 0, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
 
-        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors());
+        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
         worker.register(client);
         client.connect();
 

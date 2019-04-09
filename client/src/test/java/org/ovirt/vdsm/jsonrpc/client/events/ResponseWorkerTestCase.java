@@ -25,11 +25,12 @@ import org.reactivestreams.Subscription;
 
 public class ResponseWorkerTestCase {
 
+    private static final int EVENT_TIMEOUT_IN_HOURS = 10;
     private ResponseWorker worker;
 
     @Before
     public void setUp() {
-        this.worker = new ResponseWorker(Runtime.getRuntime().availableProcessors());
+        this.worker = new ResponseWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
     }
 
     @After

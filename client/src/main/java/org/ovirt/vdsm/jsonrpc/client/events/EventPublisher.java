@@ -5,8 +5,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.EventDecomposer;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
@@ -14,6 +18,8 @@ import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Jsonrpc implementation of {@link Publisher}
@@ -21,14 +27,43 @@ import org.reactivestreams.Subscription;
  */
 public class EventPublisher implements Publisher<Map<String, Object>, EventSubscriber> {
 
+    private static Logger log = LoggerFactory.getLogger(EventPublisher.class);
+
     private ExecutorService executorService;
+    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private SubscriptionMatcher matcher;
     private EventDecomposer decomposer;
+    private int eventTimeoutInHours;
 
-    public EventPublisher(ExecutorService executorService) {
+    public EventPublisher(ExecutorService executorService, int eventTimeoutInHours) {
         this.executorService = executorService;
         this.matcher = new SubscriptionMatcher();
         this.decomposer = new EventDecomposer();
+        this.eventTimeoutInHours = eventTimeoutInHours;
+        scheduleCleanupTask();
+    }
+
+    private void scheduleCleanupTask() {
+        try {
+            scheduledExecutorService.scheduleWithFixedDelay(() -> cleanupOldEvents(),
+                    eventTimeoutInHours,
+                    eventTimeoutInHours,
+                    TimeUnit.HOURS);
+        } catch (Throwable t) {
+            log.error("Unable to schedule cleanup task : {}", ExceptionUtils.getRootCauseMessage(t));
+            log.debug("Exception", t);
+        }
+    }
+
+    public void cleanupOldEvents() {
+        try {
+            for (SubscriptionHolder holder : matcher.getAllSubscriptions()) {
+                holder.purgeOldEventsIfNotConsumed(eventTimeoutInHours);
+            }
+        } catch (Throwable t) {
+            log.error("Error purging old events from SubscriptionHolder : ", ExceptionUtils.getRootCauseMessage(t));
+            log.debug("Exception", t);
+        }
     }
 
     /*
@@ -86,6 +121,18 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
                 .forEach(holder -> this.executorService.submit(new EventCallable(holder, this.decomposer)));
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * Used by test case to count number of events
+     */
+    public int countEvents(JsonRpcEvent event) {
+        Set<SubscriptionHolder> holders = matcher.match(event);
+        return holders.stream()
+                .mapToInt(holder -> holder.getNumberOfEvents())
+                .sum();
+    }
+
     /**
      * Event processing task which is submit to a {@link ExecutorService} for processing.
      *
@@ -109,18 +156,29 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
         @Override
         public Void call() throws Exception {
             Subscriber<Map<String, Object>> subscriber = this.holder.getSubscriber();
-            JsonRpcEvent event = null;
+            JsonRpcEvent event;
             while ((event = this.holder.canProcessMore()) != null) {
+                handleEvent(subscriber, event);
+            }
+            return null;
+        }
+
+        private void handleEvent(Subscriber<Map<String, Object>> subscriber, JsonRpcEvent event) {
+            try {
                 Map<String, Object> map = this.decomposer.decompose(event);
                 if (map.containsKey(JsonRpcEvent.ERROR_KEY)) {
                     subscriber.onError(new ClientConnectionException((String) map.get(JsonRpcEvent.ERROR_KEY)));
                 } else {
                     subscriber.onNext(map);
                 }
+            } catch (Throwable t) {
+                log.error("Error processing event '{}' for subscriber '{}' : {}.",
+                        event.toString(),
+                        subscriber.getClass().getCanonicalName(),
+                        ExceptionUtils.getRootCauseMessage(t));
+                log.debug("Exception", t);
             }
-            return null;
         }
-
     }
 
     public void close() {

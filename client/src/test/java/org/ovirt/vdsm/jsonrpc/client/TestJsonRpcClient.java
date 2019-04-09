@@ -30,6 +30,7 @@ public abstract class TestJsonRpcClient {
     private JsonRpcClient client;
     private ReactorTestHelper helper;
     private static final int PLAIN_PORT = 9090;
+    private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
     protected abstract ReactorTestHelper getHelper();
 
@@ -48,7 +49,7 @@ public abstract class TestJsonRpcClient {
     }
 
     private void setUpClientPool() {
-        this.responseWorker = new ResponseWorker(Runtime.getRuntime().availableProcessors());
+        this.responseWorker = new ResponseWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
     }
 
     private void setUpClient() {

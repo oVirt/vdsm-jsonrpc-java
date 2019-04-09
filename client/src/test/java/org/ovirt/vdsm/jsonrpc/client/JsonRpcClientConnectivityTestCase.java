@@ -43,6 +43,7 @@ public class JsonRpcClientConnectivityTestCase {
     private static final int TIMEOUT = 1000;
     private static final int TIMEOUT_SEC = 3;
     private static final int HEART_BEAT = 1000;
+    private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
     private Reactor getReactor() throws ClientConnectionException {
         return ReactorFactory.getReactor(null, ReactorType.STOMP);
@@ -55,7 +56,8 @@ public class JsonRpcClientConnectivityTestCase {
         final ReactorClient client = reactor.createClient(HOSTNAME, 3333);
         client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
                 DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors());
+        ResponseWorker worker =
+                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
         JsonRpcClient jsonClient = worker.register(client);
         JsonRpcRequest request = mock(JsonRpcRequest.class);
         when(request.getId()).thenReturn(mock(JsonNode.class));
@@ -99,7 +101,8 @@ public class JsonRpcClientConnectivityTestCase {
         final ReactorClient client = reactor.createClient(HOSTNAME, PORT);
         client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
                 DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors());
+        ResponseWorker worker =
+                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
         JsonRpcClient jsonClient = worker.register(client);
         jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 2, HEART_BEAT));
         JsonRpcRequest request = mock(JsonRpcRequest.class);
@@ -150,7 +153,8 @@ public class JsonRpcClientConnectivityTestCase {
         final ReactorClient client = reactor.createClient(HOSTNAME, PORT + 1);
         client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
                 DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors());
+        ResponseWorker worker =
+                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
         JsonRpcClient jsonClient = worker.register(client);
         jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 2, HEART_BEAT));
 

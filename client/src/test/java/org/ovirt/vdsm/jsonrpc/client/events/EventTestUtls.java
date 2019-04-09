@@ -8,6 +8,7 @@ public class EventTestUtls {
 
     public static final String MESSAGE_CONTENT =
             "{\"jsonrpc\": \"2.0\", \"method\": \"|testcase|test|update\", \"params\": {\"value\": 42}}";
+    private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
     static class ResponseForkJoinWorkerThread extends ForkJoinWorkerThread {
 
@@ -27,6 +28,7 @@ public class EventTestUtls {
 
                 },
                 null,
-                true));
+                true),
+                EVENT_TIMEOUT_IN_HOURS);
     }
 }

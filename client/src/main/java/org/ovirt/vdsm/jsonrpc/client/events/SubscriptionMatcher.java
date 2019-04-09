@@ -41,6 +41,7 @@ public class SubscriptionMatcher {
     private ConcurrentMap<String, List<SubscriptionHolder>> component = new ConcurrentHashMap<>();
     private ConcurrentMap<String, List<SubscriptionHolder>> operation = new ConcurrentHashMap<>();
     private ConcurrentMap<String, SubscriptionHolder> unique_id = new ConcurrentHashMap<>();
+    private List<SubscriptionHolder> allSubscriptions = new CopyOnWriteArrayList<>();
 
     private interface Predicate {
         boolean apply(int one, int two);
@@ -75,6 +76,7 @@ public class SubscriptionMatcher {
                     update(this.receiver, rKey, holder);
                 }
             }
+            allSubscriptions.add(holder);
         } catch (IllegalArgumentException e) {
             remove(holder);
             throw e;
@@ -154,6 +156,7 @@ public class SubscriptionMatcher {
         clean(this.operation, ids[2], holder);
         clean(this.component, ids[1], holder);
         clean(this.receiver, ids[0], holder);
+        allSubscriptions.remove(holder);
     }
 
     private void clean(ConcurrentMap<String, List<SubscriptionHolder>> map, String key, SubscriptionHolder holder) {
@@ -165,5 +168,9 @@ public class SubscriptionMatcher {
                 map.remove(key);
             }
         }
+    }
+
+    public List<SubscriptionHolder> getAllSubscriptions() {
+        return allSubscriptions;
     }
 }

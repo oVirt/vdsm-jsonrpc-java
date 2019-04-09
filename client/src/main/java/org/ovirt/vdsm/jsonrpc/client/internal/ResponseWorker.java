@@ -42,7 +42,7 @@ public final class ResponseWorker extends Thread {
         MAPPER.configure(JsonParser.Feature.CANONICALIZE_FIELD_NAMES, false);
     }
 
-    public ResponseWorker(int parallelism) {
+    public ResponseWorker(int parallelism, int eventTimeoutInHours) {
         this.queue = new LinkedBlockingQueue<>();
         this.tracker = new ResponseTracker();
         this.publisher =
@@ -56,7 +56,8 @@ public final class ResponseWorker extends Thread {
 
                         },
                         null,
-                        true));
+                        true),
+                        eventTimeoutInHours);
 
         Thread trackerThread = new Thread(this.tracker);
         trackerThread.setName("Response tracker");

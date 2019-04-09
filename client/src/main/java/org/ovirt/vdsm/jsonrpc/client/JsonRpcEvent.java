@@ -19,6 +19,7 @@ public class JsonRpcEvent {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private String method;
     private JsonNode params;
+    private long arrivalTime;
 
     /**
      * Creates notification object.
@@ -138,5 +139,13 @@ public class JsonRpcEvent {
     @Override
     public String toString() {
         return "<JsonRpcEvent method: " + this.getMethod() + ", params: " + this.getParams().toString() + ">";
+    }
+
+    public long getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public void setArrivalTime(long arrivalTime) {
+        this.arrivalTime = arrivalTime;
     }
 }

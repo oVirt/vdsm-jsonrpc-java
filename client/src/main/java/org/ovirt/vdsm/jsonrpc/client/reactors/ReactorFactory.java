@@ -38,9 +38,10 @@ public class ReactorFactory {
 
     /**
      * @param parallelism the parallelism level using for event processing.
+     * @param eventTimeoutInHours the timeout after which the events are purged from the queue.
      * @return Single instance of <code>ResponseWorker</code>.
      */
-    public static ResponseWorker getWorker(int parallelism) {
+    public static ResponseWorker getWorker(int parallelism, int eventTimeoutInHours) {
         if (worker != null) {
             return worker;
         }
@@ -48,7 +49,7 @@ public class ReactorFactory {
             if (worker != null) {
                 return worker;
             }
-            worker = new ResponseWorker(parallelism);
+            worker = new ResponseWorker(parallelism, eventTimeoutInHours);
         }
         return worker;
     }
