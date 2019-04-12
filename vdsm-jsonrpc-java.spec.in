@@ -125,6 +125,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Fri Apr 12 2019 Piotr Kliczewski <pkliczew@redhat.com> 1.4.16
+- Purge old events and EventPublisher should handle exceptions
+
 * Fri Oct 5 2018 Piotr Kliczewski <pkliczew@redhat.com> - 1.4.15-2
 - packaging: spec: fix spec changelog
 
