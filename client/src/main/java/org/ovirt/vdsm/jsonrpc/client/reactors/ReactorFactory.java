@@ -14,6 +14,11 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
  *
  */
 public class ReactorFactory {
+    /**
+     * Default timeout to clean up unprocessed events, which are in the queue more than this timeout. The value should
+     * be passed from oVirt engine 4.3+, but we need to keep default value to preserve backward compatibility with 4.2.
+     */
+    private static final int EVENT_TIMEOUT_IN_HOURS = 3;
 
     private static volatile StompReactor stompReactor;
     private static volatile SSLStompReactor sslStompReactor;
@@ -34,6 +39,14 @@ public class ReactorFactory {
         } else {
             throw new ClientConnectionException("Unrecognized reactor type");
         }
+    }
+
+    /**
+     * @param parallelism the parallelism level using for event processing.
+     * @return Single instance of <code>ResponseWorker</code>.
+     */
+    public static ResponseWorker getWorker(int parallelism) {
+        return getWorker(parallelism, EVENT_TIMEOUT_IN_HOURS);
     }
 
     /**
