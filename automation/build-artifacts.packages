@@ -1,6 +1,7 @@
 apache-commons-lang
 autoconf
 automake
+gcc
 git
 dnf-utils
 jackson

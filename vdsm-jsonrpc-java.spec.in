@@ -39,7 +39,7 @@ Group:		Development/Libraries
 
 BuildArch:	noarch
 
-
+BuildRequires:	gcc
 BuildRequires:	apache-commons-lang >= 2.6
 BuildRequires:	jackson >= 1.9
 BuildRequires:	java-1.8.0-openjdk-devel >= 1:1.8.0
