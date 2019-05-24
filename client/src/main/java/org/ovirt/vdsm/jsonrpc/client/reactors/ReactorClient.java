@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -49,10 +50,10 @@ public abstract class ReactorClient {
     private final String hostname;
     private final int port;
     private final Lock lock;
-    private long lastIncomingHeartbeat = 0;
-    private long lastOutgoingHeartbeat = 0;
-    private boolean half = true;
+    private AtomicLong lastIncomingHeartbeat = new AtomicLong(0);
+    private AtomicLong lastOutgoingHeartbeat = new AtomicLong(0);
     private AtomicBoolean closing = new AtomicBoolean();
+    protected boolean half = true;
     protected volatile ClientPolicy policy = new DefaultConnectionRetryPolicy();
     protected final List<MessageListener> eventListeners;
     protected final Reactor reactor;
@@ -118,7 +119,7 @@ public abstract class ReactorClient {
             while (!this.channel.finishConnect()) {
 
                 final FutureTask<SocketChannel> connectTask = scheduleTask(new Retryable<>(() -> {
-                    if (System.currentTimeMillis() >= timeout) {
+                    if (this.now() >= timeout) {
                         throw new ConnectException("Connection timeout");
                     }
                     return null;
@@ -223,7 +224,7 @@ public abstract class ReactorClient {
             log.info("No interaction with host '{}' for {} ms.", getHostname(), incoming);
             this.half = false;
         }
-        if (this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExceeded()) {
+        if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExceeded()) {
             String msg = String.format("Connection timeout for host '%s', last response arrived %s ms ago.",
                     getHostname(),
                     getHeartbeatTime());
@@ -233,20 +234,20 @@ public abstract class ReactorClient {
     }
 
     private long getHeartbeatTime() {
-        return System.currentTimeMillis() - this.lastIncomingHeartbeat;
+        return this.now() - this.lastIncomingHeartbeat.get();
     }
 
     private boolean isIncomingHeartbeatExceeded() {
-        return this.lastIncomingHeartbeat + this.policy.getIncomingHeartbeat() < System.currentTimeMillis();
+        return this.lastIncomingHeartbeat.get() + this.policy.getIncomingHeartbeat() < this.now();
     }
 
     protected void updateLastIncomingHeartbeat() {
         this.half = true;
-        this.lastIncomingHeartbeat = System.currentTimeMillis();
+        this.lastIncomingHeartbeat.set(this.now());
     }
 
     protected void updateLastOutgoingHeartbeat() {
-        this.lastOutgoingHeartbeat = System.currentTimeMillis();
+        this.lastOutgoingHeartbeat.set(this.now());
     }
 
     protected void processOutgoing() throws IOException, ClientConnectionException {
@@ -312,7 +313,11 @@ public abstract class ReactorClient {
     }
 
     private boolean isOutgoingHeartbeatExceeded() {
-        return this.lastOutgoingHeartbeat + this.policy.getOutgoingHeartbeat() < System.currentTimeMillis();
+        return this.lastOutgoingHeartbeat.get() + this.policy.getOutgoingHeartbeat() < this.now();
+    }
+
+    public long now() {
+        return System.currentTimeMillis();
     }
 
     /**
@@ -342,7 +347,7 @@ public abstract class ReactorClient {
      * @throws IOException
      *             when networking issue occurs.
      */
-    abstract void write(ByteBuffer buff) throws IOException;
+    protected abstract void write(ByteBuffer buff) throws IOException;
 
     /**
      * Transport specific post connection functionality.

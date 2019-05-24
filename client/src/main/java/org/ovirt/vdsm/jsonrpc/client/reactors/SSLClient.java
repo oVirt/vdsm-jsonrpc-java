@@ -94,7 +94,7 @@ public abstract class SSLClient extends StompCommonClient {
     }
 
     @Override
-    void write(ByteBuffer buff) throws IOException {
+    protected void write(ByteBuffer buff) throws IOException {
         if (this.nioEngine != null) {
             this.nioEngine.write(buff);
         } else {

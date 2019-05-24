@@ -50,7 +50,7 @@ public abstract class PlainClient extends StompCommonClient {
     }
 
     @Override
-    void write(ByteBuffer buff) throws IOException {
+    protected void write(ByteBuffer buff) throws IOException {
         channel.write(buff);
     }
 
