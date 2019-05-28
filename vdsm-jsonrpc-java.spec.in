@@ -125,6 +125,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Tue May 28 2019 Piotr Kliczewski <pkliczew@redhat.com> 1.4.18
+- heartbeat: improve how we process
+
 * Mon Apr 15 2019 Piotr Kliczewski <pkliczew@redhat.com> 1.4.17
 - Provide default timeout to purge events
 
