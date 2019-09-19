@@ -20,12 +20,19 @@
 %global		package_version @PACKAGE_VERSION@
 %global		package_maven_version @PACKAGE_MAVEN_VERSION@
 
+%global     _java_jdk_home /usr/lib/jvm/java-11-openjdk
+
 %if 0%{?fedora:1}
 %global	_use_maven 1
-%endif
-%if 0%{?rhel:1}
 %global	_mvn_opts -Pno-test
+%endif
+
+%if 0%{?rhel:1}
 %global	_use_maven 1
+# xmvn in 3.x  version is not compatible with JDK 11, bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=1761381
+# due to it maven toolchain plugin is used to run xmvn with java 1.8 but use 11 for build and compilation
+%global	_mvn_opts -Pno-test,toolchain -gt client/src/main/resources/toolchains.xml
+%global _mvn_build_with_external_repo 1
 %endif
 
 Summary:	JsonRpc java client (%{name}) for oVirt
@@ -42,11 +49,30 @@ BuildArch:	noarch
 BuildRequires:	gcc
 BuildRequires:	apache-commons-lang >= 2.6
 BuildRequires:	jackson >= 1.9
-BuildRequires:	java-1.8.0-openjdk-devel >= 1:1.8.0
+BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	slf4j >= 1.7.0
 
 %if %{_use_maven}
 BuildRequires:	junit
+BuildRequires:	mockito
+
+%if 0%{?rhel:1}
+BuildRequires:	java-1.8.0-openjdk-headless >= 1:1.8.0
+BuildRequires:	rh-maven35-javapackages-local
+BuildRequires:	rh-maven35-javapackages-tools
+BuildRequires:	rh-maven35-maven
+BuildRequires:	rh-maven35-maven-compiler-plugin
+BuildRequires:	rh-maven35-maven-enforcer-plugin
+BuildRequires:	rh-maven35-maven-install-plugin
+BuildRequires:	rh-maven35-maven-jar-plugin
+BuildRequires:	rh-maven35-maven-javadoc
+BuildRequires:	rh-maven35-maven-local
+BuildRequires:	rh-maven35-maven-source-plugin
+BuildRequires:	rh-maven35-maven-surefire-provider-junit
+BuildRequires:	rh-maven35-maven-toolchain
+BuildRequires:	rh-maven35-sonatype-oss-parent
+%else
+BuildRequires:	maven >= 3.5.0
 BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-enforcer-plugin
 BuildRequires:	maven-install-plugin
@@ -55,13 +81,13 @@ BuildRequires:	maven-javadoc-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
-BuildRequires:	mockito
 BuildRequires:	sonatype-oss-parent
+%endif
 %endif
 
 Requires:	apache-commons-lang >= 2.6
 Requires:	jackson >= 1.9
-Requires:	java-openjdk-headless >= 1.8.0
+Requires:	java-11-openjdk-headless >= 11.0.4
 Requires:	slf4j >= 1.7.0
 
 %description
@@ -88,15 +114,28 @@ This package contains the API documentation for %{name}.
 	JACKSON_MAPPER_ASL=$(build-classpath jackson/jackson-mapper-asl) \\\
 	SLF4J_JAR=$(build-classpath slf4j) \\\
 	COMMONS_LANG_JAR=$(build-classpath apache-commons-lang) \\\
-	JAVAC=/usr/lib/jvm/java-1.8.0/bin/javac \\\
-	JAR=/usr/lib/jvm/java-1.8.0/bin/jar \\\
+	JAVAC=%{_java_jdk_home}/bin/javac \\\
+	JAR=%{_java_jdk_home}/bin/jar \\\
 	%{?null}
 %endif
 %configure %{?conf}
 make %{?_smp_mflags}
 
+%if 0%{?fedora:1}
+# necessary because jdk 1.8 comes as default with rh-maven35-local / xmvn
+export JAVA_HOME="%{_java_jdk_home}"
+%endif
+
+
 %if %{_use_maven}
+%if 0%{?_mvn_build_with_external_repo:1}
+# xmvn bootstrap enabled because maven toolchain plugin dependency
+# is not accessible even when installed as rpm (still not sure why),
+# leaving it as it is because once xmvn is upgraded then toolchain can be removed
+%mvn_build -b -- %{?_mvn_opts}
+%else
 %mvn_build -- %{?_mvn_opts}
+%endif
 %endif
 
 %install
@@ -121,7 +160,7 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %if %{_use_maven}
-%files javadoc -f .mfiles-javadoc
+%files -f .mfiles-javadoc
 %endif
 
 %changelog

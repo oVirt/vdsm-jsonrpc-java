@@ -5,7 +5,7 @@ gcc
 git
 dnf-utils
 jackson
-java-1.8.0-openjdk-devel
+java-11-openjdk-devel
 junit
 maven
 maven-compiler-plugin

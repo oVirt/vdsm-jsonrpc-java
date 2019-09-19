@@ -12,6 +12,11 @@ config.rpath
 config.sub
 ABOUT-NLS
 py-compile
+compile
+
+# Mocker
+exported-artifacts/
+mocker-*.cfg
 
 tmp.*
 *.spec
