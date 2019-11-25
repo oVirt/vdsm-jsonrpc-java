@@ -164,6 +164,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %endif
 
 %changelog
+* Tue Nov 26 2019 Artur Socha <asocha@redhat.com> 1.5.0
+- migration to java 11
+
 * Tue May 28 2019 Piotr Kliczewski <pkliczew@redhat.com> 1.4.18
 - heartbeat: improve how we process
 
