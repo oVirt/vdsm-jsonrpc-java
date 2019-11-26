@@ -159,7 +159,9 @@ ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
 %{_javadir}/%{name}/%{name}*.jar
 %endif
 
-%if %{_use_maven}
+%if 0%{?fedora:1}
+%files javadoc -f .mfiles-javadoc
+%else
 %files -f .mfiles-javadoc
 %endif
 
