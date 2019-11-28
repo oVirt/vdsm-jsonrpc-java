@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-%global		package_version @PACKAGE_VERSION@
-%global		package_maven_version @PACKAGE_MAVEN_VERSION@
+%global	package_version @PACKAGE_VERSION@
+%global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
-%global     _java_jdk_home /usr/lib/jvm/java-11-openjdk
+%global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
 
 %if 0%{?fedora:1}
 %global	_use_maven 1
@@ -32,7 +32,7 @@
 # xmvn in 3.x  version is not compatible with JDK 11, bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=1761381
 # due to it maven toolchain plugin is used to run xmvn with java 1.8 but use 11 for build and compilation
 %global	_mvn_opts -Pno-test,toolchain -gt client/src/main/resources/toolchains.xml
-%global _mvn_build_with_external_repo 1
+%global	_mvn_build_with_external_repo 1
 %endif
 
 Summary:	JsonRpc java client (%{name}) for oVirt
