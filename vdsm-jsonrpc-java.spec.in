@@ -23,12 +23,10 @@
 %global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
 
 %if 0%{?fedora:1}
-%global	_use_maven 1
 %global	_mvn_opts -Pno-test
 %endif
 
 %if 0%{?rhel:1}
-%global	_use_maven 1
 # xmvn in 3.x  version is not compatible with JDK 11, bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=1761381
 # due to it maven toolchain plugin is used to run xmvn with java 1.8 but use 11 for build and compilation
 %global	_mvn_opts -Pno-test,toolchain -gt client/src/main/resources/toolchains.xml
@@ -51,8 +49,6 @@ BuildRequires:	apache-commons-lang >= 2.6
 BuildRequires:	jackson >= 1.9
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	slf4j >= 1.7.0
-
-%if %{_use_maven}
 BuildRequires:	junit
 BuildRequires:	mockito
 
@@ -83,7 +79,6 @@ BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
 BuildRequires:	sonatype-oss-parent
 %endif
-%endif
 
 Requires:	apache-commons-lang >= 2.6
 Requires:	jackson >= 1.9
@@ -93,32 +88,18 @@ Requires:	slf4j >= 1.7.0
 %description
 vdsm jsonrpc java
 
-%if %{_use_maven}
 %package javadoc
 Summary:	Java-docs for %{name}
 Group:		Documentation
 
 %description javadoc
 This package contains the API documentation for %{name}.
-%endif
 
 %prep
 %setup -q -n %{name}-%{package_version}
 
 %build
-%if %{_use_maven}
-%global conf --with-maven --disable-java-build
-%else
-%global conf \\\
-	JACKSON_CORE_ASL=$(build-classpath jackson/jackson-core-asl) \\\
-	JACKSON_MAPPER_ASL=$(build-classpath jackson/jackson-mapper-asl) \\\
-	SLF4J_JAR=$(build-classpath slf4j) \\\
-	COMMONS_LANG_JAR=$(build-classpath apache-commons-lang) \\\
-	JAVAC=%{_java_jdk_home}/bin/javac \\\
-	JAR=%{_java_jdk_home}/bin/jar \\\
-	%{?null}
-%endif
-%configure %{?conf}
+%configure --with-maven --disable-java-build
 make %{?_smp_mflags}
 
 %if 0%{?fedora:1}
@@ -127,7 +108,6 @@ export JAVA_HOME="%{_java_jdk_home}"
 %endif
 
 
-%if %{_use_maven}
 %if 0%{?_mvn_build_with_external_repo:1}
 # xmvn bootstrap enabled because maven toolchain plugin dependency
 # is not accessible even when installed as rpm (still not sure why),
@@ -136,28 +116,14 @@ export JAVA_HOME="%{_java_jdk_home}"
 %else
 %mvn_build -- %{?_mvn_opts}
 %endif
-%endif
 
 %install
 make %{?_smp_mflags} install DESTDIR="%{buildroot}"
 
-%if %{_use_maven}
 %mvn_install
-%else
-install -d "%{buildroot}%{_javadir}/%{name}"
-FILE=$(ls -1 target/%{name}-client*.jar | grep -v source | grep -v javadoc | xargs -n 1 basename)
-install target/$FILE %{buildroot}%{_javadir}/%{name}
-ln -s $FILE %{buildroot}%{_javadir}/%{name}/%{name}-client.jar
-%endif
 
-%if %{_use_maven}
 %files -f .mfiles
 %dir %{_javadir}/%{name}
-%else
-%files
-%dir %{_javadir}/%{name}
-%{_javadir}/%{name}/%{name}*.jar
-%endif
 
 %if 0%{?fedora:1}
 %files javadoc -f .mfiles-javadoc
