@@ -124,6 +124,11 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Mon Dec 2 2019 Artur Socha <asocha@redhat.com> 1.5.2
+- Fix for rpm datadir location
+- Use always maven to build project
+- Use tabs character in spec file consistently
+
 * Wed Nov 27 2019 Artur Socha <asocha@redhat.com> 1.5.1
 - downstream build fix
 
