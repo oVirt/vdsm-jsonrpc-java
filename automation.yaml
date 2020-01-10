@@ -3,7 +3,6 @@ stage:
     - build-artifacts
     - check-patch
 arch: x86_64
-distro:
-    - fc30:
-        release_branches:
-            master: master
+distro: [fc30, el8]
+release_branches:
+    master: master

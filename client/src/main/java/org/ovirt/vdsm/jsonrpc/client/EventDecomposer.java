@@ -5,9 +5,9 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 import java.io.IOException;
 import java.util.Map;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,9 +20,7 @@ public class EventDecomposer {
     private static ObjectMapper mapper = new ObjectMapper();
 
     public EventDecomposer() {
-        mapper.configure(
-                DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY,
-                true);
+        mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
     }
 
     /**
@@ -32,7 +30,7 @@ public class EventDecomposer {
      */
     public Map<String, Object> decompose(JsonRpcEvent event) {
         try {
-            return mapper.readValue(event.getParams(),
+            return mapper.readValue(mapper.writeValueAsBytes(event.getParams()),
                     new TypeReference<Map<String, Object>>() {
                     });
         } catch (IOException e) {

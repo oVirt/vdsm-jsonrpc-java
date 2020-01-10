@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;

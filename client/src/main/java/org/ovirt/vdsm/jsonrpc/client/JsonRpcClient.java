@@ -10,8 +10,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.NullNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.ovirt.vdsm.jsonrpc.client.internal.BatchCall;
 import org.ovirt.vdsm.jsonrpc.client.internal.Call;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;

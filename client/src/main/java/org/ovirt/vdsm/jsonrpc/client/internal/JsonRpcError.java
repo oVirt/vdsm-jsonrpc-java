@@ -1,6 +1,6 @@
 package org.ovirt.vdsm.jsonrpc.client.internal;
 
-import org.codehaus.jackson.JsonNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Java bean representing error information from json message.

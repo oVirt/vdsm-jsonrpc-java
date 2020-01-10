@@ -3,8 +3,8 @@ package org.ovirt.vdsm.jsonrpc.client;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Utility class which helps to build {@link JsonRpcResponse} by providing

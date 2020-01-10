@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.node.TextNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;

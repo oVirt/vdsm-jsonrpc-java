@@ -9,17 +9,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 public class RequestBuilderTestCase {
 
+    private final static ObjectMapper MAPPER = new ObjectMapper();
     @SuppressWarnings("unchecked")
     @Test
-    public void testSimpleRequest() throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequest() throws IOException {
         // given
         String methodName = "Task.getInfo";
         String taskId = "1234";
@@ -29,8 +28,9 @@ public class RequestBuilderTestCase {
 
         // then
         assertEquals(methodName, request.getMethod());
-        Map<String, Object> jsonData =
-                new ObjectMapper().readValue(request.toJson(), new TypeReference<HashMap<String, Object>>() {
+        Map<String, Object> jsonData = MAPPER.readValue(
+                MAPPER.writeValueAsBytes(request.toJson()),
+                new TypeReference<HashMap<String, Object>>() {
                 });
         assertEquals(methodName, jsonData.get("method"));
         Map<String, Object> params = (Map<String, Object>) jsonData.get("params");
@@ -39,7 +39,7 @@ public class RequestBuilderTestCase {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testRequestwithMap() throws JsonParseException, JsonMappingException, IOException {
+    public void testRequestwithMap() throws IOException {
         // given
         String methodName = "VM.create";
         Map<String, Object> map = new HashMap<>();
@@ -70,8 +70,9 @@ public class RequestBuilderTestCase {
         JsonRpcRequest request = new RequestBuilder(methodName).withParameter("vmParams", map).build();
 
         // then
-        Map<String, Object> jsonData =
-                new ObjectMapper().readValue(request.toJson(), new TypeReference<HashMap<String, Object>>() {
+        Map<String, Object> jsonData = MAPPER.readValue(
+                MAPPER.writeValueAsBytes(request.toJson()),
+                new TypeReference<HashMap<String, Object>>() {
                 });
         assertEquals(methodName, jsonData.get("method"));
         Map<String, Object> params = (Map<String, Object>) jsonData.get("params");
@@ -81,54 +82,53 @@ public class RequestBuilderTestCase {
     }
 
     @Test
-    public void testSimpleRequestWithOptional() throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptional() throws IOException {
         // given
         String param = "1234";
         assertRequestWithOptional(param, param);
     }
 
     @Test
-    public void testSimpleRequestWithOptionalNonString() throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptionalNonString() throws IOException {
         Boolean param = Boolean.FALSE;
         assertRequestWithOptional(param, param);
     }
 
     @Test
-    public void testSimpleRequestWithOptionalNull() throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptionalNull() throws IOException {
         Boolean param = null;
         assertRequestWithOptional(param, param);
     }
 
     @Test
-    public void testSimpleRequestWithOptionalEmptyString()
-            throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptionalEmptyString() throws IOException {
         Object parameter = "";
         assertRequestWithOptional(parameter, null);
     }
 
     @Test
-    public void testSimpleRequestWithOptionalPrimitiveBoolean()
-            throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptionalPrimitiveBoolean() throws IOException {
         boolean parameter = true;
         assertRequestWithOptional(parameter, parameter);
     }
 
     @Test
-    public void testSimpleRequestWithOptionalPrimitiveInteger()
-            throws JsonParseException, JsonMappingException, IOException {
+    public void testSimpleRequestWithOptionalPrimitiveInteger() throws IOException {
         int parameter = 444;
         assertRequestWithOptional(parameter, parameter);
     }
 
     @SuppressWarnings("unchecked")
-    private void assertRequestWithOptional(Object parameter, Object expected) throws JsonParseException,
-            JsonMappingException, IOException {
+    private void assertRequestWithOptional(Object parameter, Object expected) throws IOException {
         // when
-        JsonRpcRequest request = new RequestBuilder("Task.getInfo").withOptionalParameter("taskID", parameter).build();
+        JsonRpcRequest request = new RequestBuilder("Task.getInfo")
+                .withOptionalParameter("taskID", parameter)
+                .build();
 
         // then
-        Map<String, Object> jsonData =
-                new ObjectMapper().readValue(request.toJson(), new TypeReference<HashMap<String, Object>>() {
+        Map<String, Object> jsonData = MAPPER.readValue(
+                MAPPER.writeValueAsBytes(request.toJson()),
+                new TypeReference<HashMap<String, Object>>() {
                 });
         Map<String, Object> params = (Map<String, Object>) jsonData.get("params");
         assertEquals(expected, params.get("taskID"));

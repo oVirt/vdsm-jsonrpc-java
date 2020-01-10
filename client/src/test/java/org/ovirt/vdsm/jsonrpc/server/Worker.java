@@ -10,10 +10,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ArrayNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Worker extends Thread {
     private static final int TIMEOUT_SEC = 300;
@@ -22,17 +22,12 @@ public class Worker extends Thread {
     private static ObjectMapper mapper = new ObjectMapper();
 
     public Worker() {
-        this.responses.put("echo", new Processor() {
-
-            @Override
-            public JsonNode process(JsonNode node) {
-                ObjectNode result = mapper.createObjectNode();
-                result.put("jsonrpc", node.get("jsonrpc"));
-                result.put("id", node.get("id"));
-                result.put("result", node.get("params").get("text").asText());
-                return result;
-            }
-
+        this.responses.put("echo", node -> {
+            ObjectNode result = mapper.createObjectNode();
+            result.set("jsonrpc", node.get("jsonrpc"));
+            result.set("id", node.get("id"));
+            result.put("result", node.get("params").get("text").asText());
+            return result;
         });
         this.responses.put("ping", new Processor() {
 

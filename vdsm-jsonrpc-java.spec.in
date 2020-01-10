@@ -36,7 +36,9 @@ BuildArch:	noarch
 
 BuildRequires:	gcc
 BuildRequires:	apache-commons-lang >= 2.6
-BuildRequires:	jackson >= 1.9
+BuildRequires:  jackson-annotations >= 2.9.0
+BuildRequires:  jackson-core >= 2.9.0
+BuildRequires:  jackson-databind >= 2.9.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	slf4j >= 1.7.0
 BuildRequires:	junit
@@ -46,14 +48,15 @@ BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-enforcer-plugin
 BuildRequires:	maven-install-plugin
 BuildRequires:	maven-jar-plugin
-BuildRequires:	maven-javadoc-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
 BuildRequires:	sonatype-oss-parent
 
 Requires:	apache-commons-lang >= 2.6
-Requires:	jackson >= 1.9
+Requires:	jackson-annotations >= 2.9.0
+Requires:	jackson-core >= 2.9.0
+Requires:	jackson-databind >= 2.9.0
 Requires:	java-11-openjdk-headless >= 11.0.4
 Requires:	slf4j >= 1.7.0
 
@@ -69,6 +72,10 @@ This package contains the API documentation for %{name}.
 
 %prep
 %setup -q -n %{name}-%{package_version}
+%if 0%{?rhel} > 7
+# No need for maven-javadoc-plugin in RHEL8, xmvn will take care of it.
+%pom_remove_plugin :maven-javadoc-plugin client/pom.xml.in
+%endif
 
 %build
 %configure --with-maven --disable-java-build

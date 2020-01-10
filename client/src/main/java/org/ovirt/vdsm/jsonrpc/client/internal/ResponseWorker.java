@@ -11,11 +11,11 @@ import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.NullNode;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcClient;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
@@ -38,8 +38,8 @@ public final class ResponseWorker extends Thread {
     private EventPublisher publisher;
     private static Logger log = LoggerFactory.getLogger(ResponseWorker.class);
     static {
-        MAPPER.configure(JsonParser.Feature.INTERN_FIELD_NAMES, false);
-        MAPPER.configure(JsonParser.Feature.CANONICALIZE_FIELD_NAMES, false);
+        MAPPER.getFactory().configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false);
+        MAPPER.getFactory().configure(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES, false);
     }
 
     public ResponseWorker(int parallelism, int eventTimeoutInHours) {
@@ -110,7 +110,7 @@ public final class ResponseWorker extends Thread {
                 if (!rootNode.isArray()) {
                     processIncomingObject(context.getClient(), rootNode);
                 } else {
-                    final Iterator<JsonNode> iter = rootNode.getElements();
+                    final Iterator<JsonNode> iter = rootNode.elements();
                     while (iter.hasNext()) {
                         final JsonNode node = iter.next();
                         processIncomingObject(context.getClient(), node);

@@ -7,9 +7,9 @@ import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ovirt.vdsm.jsonrpc.client.internal.JsonRpcError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +29,7 @@ public class ResponseDecomposer {
      */
     public ResponseDecomposer(JsonRpcResponse response) {
         this.response = response;
-        mapper.configure(
-                DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY,
-                true);
+        mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
     }
 
     /**
@@ -51,7 +49,7 @@ public class ResponseDecomposer {
     @SuppressWarnings("unchecked")
     public <T> T decomposeResponse(Class<T> clazz) {
         try {
-            T t = mapper.readValue(this.response.getResult(),
+            T t = mapper.readValue(mapper.writeValueAsBytes(this.response.getResult()),
                     new TypeReference<T>() {
                     });
             if (String.class.equals(clazz) && !String.class.isInstance(t)) {
@@ -93,7 +91,7 @@ public class ResponseDecomposer {
      */
     public Map<String, Object> decomposeError() {
         try {
-            Map<String, Object> status = mapper.readValue(this.response.getError(),
+            Map<String, Object> status = mapper.readValue(mapper.writeValueAsBytes(this.response.getError()),
                     new TypeReference<HashMap<String, Object>>() {
                     });
             Map<String, Object> map = new HashMap<>();

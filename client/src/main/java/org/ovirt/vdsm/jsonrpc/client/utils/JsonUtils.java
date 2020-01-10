@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 import org.ovirt.vdsm.jsonrpc.client.ResponseBuilder;
@@ -34,17 +34,15 @@ public class JsonUtils {
     public static final String SUBSCRIPTION_ALL = "*|*|*|*";
     private static Logger log = LoggerFactory.getLogger(JsonUtils.class);
     private static ObjectMapper mapper = new ObjectMapper();
-    private static JsonFactory factory = mapper.getJsonFactory();
+    private static JsonFactory factory = mapper.getFactory();
     static {
-        mapper.configure(
-                DeserializationConfig.Feature.USE_JAVA_ARRAY_FOR_JSON_ARRAY,
-                true);
+        mapper.configure(DeserializationFeature.USE_JAVA_ARRAY_FOR_JSON_ARRAY, true);
     }
 
     public static Map<String, Object> mapValues(JsonNode node) {
         Map<String, Object> map = null;
         try {
-            map = mapper.readValue(node,
+            map = mapper.readValue(mapper.writeValueAsBytes(node),
                     new TypeReference<HashMap<String, Object>>() {
                     });
         } catch (IOException e) {
@@ -56,7 +54,7 @@ public class JsonUtils {
     public static byte[] jsonToByteArray(JsonNode json) {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
-            try (JsonGenerator gen = factory.createJsonGenerator(os, JsonEncoding.UTF8)) {
+            try (JsonGenerator gen = factory.createGenerator(os, JsonEncoding.UTF8)) {
                 gen.writeTree(json);
             }
         } catch (IOException e) {
@@ -68,7 +66,7 @@ public class JsonUtils {
     public static byte[] jsonToByteArray(List<JsonRpcRequest> requests) {
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
         try {
-            try (JsonGenerator gen = factory.createJsonGenerator(os, JsonEncoding.UTF8)) {
+            try (JsonGenerator gen = factory.createGenerator(os, JsonEncoding.UTF8)) {
                 gen.writeStartArray();
                 for (final JsonRpcRequest request : requests) {
                     gen.writeTree(request.toJson());

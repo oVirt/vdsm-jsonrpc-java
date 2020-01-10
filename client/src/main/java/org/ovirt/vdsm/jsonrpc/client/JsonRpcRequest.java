@@ -3,9 +3,9 @@ package org.ovirt.vdsm.jsonrpc.client;
 import java.io.IOException;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Java bean representation of the request.
@@ -54,7 +54,7 @@ public class JsonRpcRequest {
     }
 
     public String getPlainId() {
-        return getId().getTextValue();
+        return getId().textValue();
     }
 
     /**
