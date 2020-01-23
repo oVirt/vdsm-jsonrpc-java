@@ -21,15 +21,7 @@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
 %global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
-
-%if 0%{?rhel} == 7
-# xmvn in 3.x  version is not compatible with JDK 11, bugzilla https://bugzilla.redhat.com/show_bug.cgi?id=1761381
-# due to it maven toolchain plugin is used to run xmvn with java 1.8 but use 11 for build and compilation
-%global	_mvn_opts -Pno-test,toolchain -gt client/src/main/resources/toolchains.xml
-
-%else
 %global	_mvn_opts -Pno-test
-%endif
 
 Summary:	JsonRpc java client (%{name}) for oVirt
 Name:		@PACKAGE_NAME@
@@ -49,23 +41,6 @@ BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	slf4j >= 1.7.0
 BuildRequires:	junit
 BuildRequires:	mockito
-
-%if 0%{?rhel} == 7
-BuildRequires:	java-1.8.0-openjdk-headless >= 1:1.8.0
-BuildRequires:	rh-maven35-javapackages-local
-BuildRequires:	rh-maven35-javapackages-tools
-BuildRequires:	rh-maven35-maven
-BuildRequires:	rh-maven35-maven-compiler-plugin
-BuildRequires:	rh-maven35-maven-enforcer-plugin
-BuildRequires:	rh-maven35-maven-install-plugin
-BuildRequires:	rh-maven35-maven-jar-plugin
-BuildRequires:	rh-maven35-maven-javadoc
-BuildRequires:	rh-maven35-maven-local
-BuildRequires:	rh-maven35-maven-source-plugin
-BuildRequires:	rh-maven35-maven-surefire-provider-junit
-BuildRequires:	rh-maven35-maven-toolchain
-BuildRequires:	rh-maven35-sonatype-oss-parent
-%else
 BuildRequires:	maven >= 3.5.0
 BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-enforcer-plugin
@@ -76,7 +51,6 @@ BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
 BuildRequires:	sonatype-oss-parent
-%endif
 
 Requires:	apache-commons-lang >= 2.6
 Requires:	jackson >= 1.9
@@ -105,15 +79,7 @@ make %{?_smp_mflags}
 export JAVA_HOME="%{_java_jdk_home}"
 %endif
 
-
-%if 0%{?rhel} == 7
-# xmvn bootstrap enabled because maven toolchain plugin dependency
-# is not accessible even when installed as rpm (still not sure why),
-# leaving it as it is because once xmvn is upgraded then toolchain can be removed
-%mvn_build -b -- %{?_mvn_opts}
-%else
 %mvn_build -- %{?_mvn_opts}
-%endif
 
 %install
 %mvn_install
