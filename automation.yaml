@@ -1,0 +1,13 @@
+---
+stage:
+    - build-artifacts
+    - check-patch
+arch: x86_64
+distro:
+    - fc30:
+        release_branches:
+            master: master
+    - el7:
+        release_branches:
+            '4.3' : ovirt-4.3
+            master: master
