@@ -97,6 +97,11 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Thu Feb 6 2020 Artur Socha <asocha@redhat.com> 1.5.3
+- Jackson migration to com.fasterxml.* v2.9.x
+- STDCI V2 configuration
+- Centos 7 CI build configuration removed
+
 * Mon Dec 2 2019 Artur Socha <asocha@redhat.com> 1.5.2
 - Fix for rpm datadir location
 - Use always maven to build project
