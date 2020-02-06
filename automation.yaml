@@ -5,4 +5,4 @@ stage:
 arch: x86_64
 distro: [fc30, el8]
 release_branches:
-    master: master
+    master: ovirt-master
