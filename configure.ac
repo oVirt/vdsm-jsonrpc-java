@@ -39,20 +39,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_USE_SYSTEM_EXTENSIONS
 AM_INIT_AUTOMAKE([tar-pax])
 
-AC_ARG_ENABLE(
-	[java-build],
-	[AS_HELP_STRING([--disable-java-build], [disable java build @<:@default=yes@:>@])],
-	,
-	[enable_java_build="yes"]
-)
-
-AC_ARG_WITH(
-	[maven],
-	[AS_HELP_STRING([--with-maven], [use maven to build java @<:@default=no@:>@])],
-	,
-	[with_maven="no"]
-)
-
 AC_ARG_WITH(
 	[maven-version-snapshot],
 	[AS_HELP_STRING([--with-maven-version-snapshot], [maven version snapshot @<:@default=no@:>@])],
@@ -63,7 +49,6 @@ AC_ARG_WITH(
 AC_ARG_WITH(
 	[dist_only],
 	[AS_HELP_STRING([--with-dist-only], [configure to enable source only distibution (e.g. make dist) @<:@default=no@:>@])],
-	[enable_java_build="no",with_maven="no"],
 	[with_dist_only="no"],
 )
 
@@ -72,30 +57,12 @@ AC_PROG_SED
 AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 
-if test ! "${with_maven}" = "no"; then
-AC_ARG_VAR([MVN], [path to mvn utility])
-AC_CHECK_PROGS([MVN], [mvn])
-fi
-AC_ARG_VAR([JAVAC], [path to java compiler])
-AC_CHECK_PROGS([JAVAC], [javac])
-AC_ARG_VAR([jar], [path to jar utility])
-AC_CHECK_PROGS([JAR], [jar])
-
-AC_ARG_VAR([JACKSON_CORE_ASL], [path to jackson-core-asl jar])
-AC_ARG_VAR([JACKSON_MAPPER_ASL], [path to jackson-mapper-asl jar])
-AC_ARG_VAR([SLF4J_JAR], [path to slf4j jar])
-AC_ARG_VAR([COMMONS_LANG_JAR], [path to commons-lang jar])
-
 if test ! "${with_dist_only}" = "yes"; then
-	if test "${with_maven}" = "yes"; then
-		test -z "${MVN}" && \
-			AC_MSG_ERROR([maven is required but not found])
-	else
-		test -z "${JAVAC}" && \
-			AC_MSG_ERROR([javac is required but not found])
-		test -z "${JAR}" && \
-			AC_MSG_ERROR([jar is required but not found])
-	fi
+    AC_ARG_VAR([MVN], [path to mvn utility])
+    AC_CHECK_PROGS([MVN], [mvn])
+
+	test -z "${MVN}" && \
+		AC_MSG_ERROR([maven is required but not found])
 fi
 
 if test "${with_maven_version_snapshot}" = "no"; then
@@ -105,8 +72,6 @@ else
 fi
 AC_SUBST([MAVEN_VERSION_SNAPSHOT])
 
-AM_CONDITIONAL([ENABLE_JAVA_BUILD], [test "${enable_java_build}" = "yes"])
-AM_CONDITIONAL([WITH_MAVEN], [test "${with_maven}" = "yes"])
 AM_CONDITIONAL([WITH_DIST_ONLY], [test "${with_dist_only}" = "yes"])
 
 AC_CONFIG_FILES([

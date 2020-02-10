@@ -17,39 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
+# TODO not sure it this is still needed, will take care of it later
 MAINTAINERCLEANFILES = \
 	$(srcdir)/Makefile.in \
 	$(NULL)
 
+# TODO not sure it this is still needed, will take care of it later
 dist_noinst_DATA = \
 	MANIFEST.MF \
 	src \
 	$(NULL)
-
-if ENABLE_JAVA_BUILD
-if !WITH_MAVEN
-
-targetdir=$(abs_top_builddir)/target
-
-all-local:	\
-		vdsm-jsonrpc-java-client-$(PACKAGE_MAVEN_VERSION).jar \
-		$(NULL)
-	$(MKDIR_P) "$(targetdir)"
-	cp *.jar "$(targetdir)"
-
-vdsm-jsonrpc-java-client-$(PACKAGE_MAVEN_VERSION).jar: \
-		src/main/java/org/ovirt/vdsm/jsonrpc/client/*.java \
-		$(NULL)
-	$(MKDIR_P) target
-	$(JAVAC) \
-		-source 11 -target 11 \
-		-cp $(JACKSON_MAPPER_ASL):$(COMMONS_LANG_JAR):$(JACKSON_CORE_ASL):${SLF4J_JAR} \
-		-d target \
-		$$(find src/main -name '*.java')
-	$(JAR) -cmf "$(srcdir)/MANIFEST.MF" "vdsm-jsonrpc-java-client-$(PACKAGE_MAVEN_VERSION).jar" -C target .
-
-clean-local:
-	rm -fr target *.jar
-
-endif
-endif

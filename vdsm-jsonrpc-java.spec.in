@@ -78,7 +78,7 @@ This package contains the API documentation for %{name}.
 %endif
 
 %build
-%configure --with-maven --disable-java-build
+%configure
 
 # necessary because jdk 1.8 comes as default with xmvn
 export JAVA_HOME="%{_java_jdk_home}"

@@ -47,14 +47,11 @@ dist_noinst_DATA = \
 
 clean-local:
 	rm -fr target
-if ENABLE_JAVA_BUILD
-if WITH_MAVEN
+if !WITH_DIST_ONLY
 	$(MVN) clean
 endif
-endif
 
-if ENABLE_JAVA_BUILD
-if WITH_MAVEN
+if !WITH_DIST_ONLY
 
 targetdir=$(abs_top_builddir)/target
 
@@ -70,7 +67,6 @@ all-local:
 			cp "$${f}" "$(targetdir)/$$(basename "$${f}")"; \
 		done; \
 	done
-endif
 endif
 
 if WITH_DIST_ONLY
