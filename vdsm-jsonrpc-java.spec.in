@@ -32,13 +32,18 @@ URL:		http://www.ovirt.org
 Source:		http://resources.ovirt.org/pub/ovirt-master-snapshot/src/%{name}/%{name}-%{package_version}.tar.gz
 Group:		Development/Libraries
 
+# We need to disable automatic generation of "Requires: java-headless >=1:11"
+# by xmvn, because JDK 11 doesn't provide java-headless, but it
+# provides java-11-headless
+AutoReq:	no
+
 BuildArch:	noarch
 
 BuildRequires:	gcc
 BuildRequires:	apache-commons-lang >= 2.6
-BuildRequires:  jackson-annotations >= 2.9.0
-BuildRequires:  jackson-core >= 2.9.0
-BuildRequires:  jackson-databind >= 2.9.0
+BuildRequires:	jackson-annotations >= 2.9.0
+BuildRequires:	jackson-core >= 2.9.0
+BuildRequires:	jackson-databind >= 2.9.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	javapackages-tools
 BuildRequires:	slf4j >= 1.7.0
@@ -52,6 +57,19 @@ BuildRequires:	maven-jar-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
+
+# Explicit mvn imports because 'AutoReq:    no'
+BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
+BuildRequires:	mvn(commons-lang:commons-lang)
+BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
+BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
+BuildRequires:	mvn(org.slf4j:slf4j-api)
+
+# On EL8 maven-javadoc-plugin has been merged into xmvn , but on Fedora
+# we still need to require it
+%if 0%{?fedora} >=30
+BuildRequires:	mvn(org.apache.maven.plugins:maven-javadoc-plugin)
+%endif
 
 Requires:	apache-commons-lang >= 2.6
 Requires:	jackson-annotations >= 2.9.0
