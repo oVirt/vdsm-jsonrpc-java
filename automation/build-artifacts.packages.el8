@@ -12,7 +12,6 @@ javassist
 maven-javadoc
 maven-local
 maven-source-plugin
-sonatype-oss-parent
 slf4j
 yum-utils
 vim-minimal

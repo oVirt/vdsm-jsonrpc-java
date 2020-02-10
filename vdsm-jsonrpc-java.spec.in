@@ -51,7 +51,6 @@ BuildRequires:	maven-jar-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
-BuildRequires:	sonatype-oss-parent
 
 Requires:	apache-commons-lang >= 2.6
 Requires:	jackson-annotations >= 2.9.0
