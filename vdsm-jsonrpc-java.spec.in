@@ -40,6 +40,7 @@ BuildRequires:  jackson-annotations >= 2.9.0
 BuildRequires:  jackson-core >= 2.9.0
 BuildRequires:  jackson-databind >= 2.9.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
+BuildRequires:	javapackages-tools
 BuildRequires:	slf4j >= 1.7.0
 BuildRequires:	junit
 BuildRequires:	mockito
@@ -78,12 +79,9 @@ This package contains the API documentation for %{name}.
 
 %build
 %configure --with-maven --disable-java-build
-make %{?_smp_mflags}
 
-%if 0%{?rhel} != 7
 # necessary because jdk 1.8 comes as default with xmvn
 export JAVA_HOME="%{_java_jdk_home}"
-%endif
 
 %mvn_build -- %{?_mvn_opts}
 

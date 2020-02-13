@@ -7,7 +7,7 @@ jackson-core
 jackson-databind
 java-11-openjdk-devel
 maven
-javapackages-local
+javapackages-tools
 javassist
 maven-javadoc
 maven-local
