@@ -33,6 +33,17 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+	<developers>
+		<developer>
+			<name>Piotr Kliczewski</name>
+			<email>pkliczew@redhat.com</email>
+		</developer>
+		<developer>
+			<name>Artur Socha</name>
+			<email>asocha@redhat.com</email>
+		</developer>
+	</developers>
+
 	<scm>
 		<connection>scm:git:git://gerrit.ovirt.org/@PACKAGE_NAME@</connection>
 		<developerConnection>scm:git:gerrit.ovirt.org:@PACKAGE_NAME@</developerConnection>
