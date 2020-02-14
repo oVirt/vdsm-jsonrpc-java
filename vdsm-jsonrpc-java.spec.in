@@ -112,7 +112,7 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
-* Mon Feb 13 2020 Artur Socha <asocha@redhat.com> 1.5.4
+* Thu Feb 13 2020 Artur Socha <asocha@redhat.com> 1.5.4
 - No more plain java build for release process
 - fix for incorrect dependencies generation by xmvn
 - oss parent removed from maven pom
