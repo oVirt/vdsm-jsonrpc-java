@@ -17,8 +17,10 @@ mv *.tar.gz exported-artifacts/
 yum-builddep vdsm-jsonrpc-java.spec
 
 ## build src.rpm
+SUFFIX=".$(date -u +%Y%m%d%H%M%S).git$(git rev-parse --short HEAD)"
 rpmbuild \
     -D "_topdir $PWD/rpmbuild"  \
+    -D "release_suffix ${SUFFIX}" \
     -ta exported-artifacts/*.gz
 
 find rpmbuild -iname \*.rpm -exec mv {} exported-artifacts/ \;
