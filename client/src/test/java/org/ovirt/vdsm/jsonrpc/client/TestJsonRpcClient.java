@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -62,7 +61,7 @@ public abstract class TestJsonRpcClient {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (client != null) {
             client.close();
         }
@@ -84,7 +83,7 @@ public abstract class TestJsonRpcClient {
     }
 
     @Test
-    public void testPing() throws IOException {
+    public void testPing() {
         final JsonNode params = jsonFromString("[]");
         final JsonNode id = jsonFromString("123");
 
@@ -95,7 +94,7 @@ public abstract class TestJsonRpcClient {
     }
 
     @Test
-    public void testEcho() throws IOException {
+    public void testEcho() {
         final JsonNode params = jsonFromString("{\"text\": \"Hello World\"}");
         final JsonNode id = jsonFromString("123");
 
@@ -107,7 +106,7 @@ public abstract class TestJsonRpcClient {
     }
 
     @Test
-    public void testBatch() throws IOException {
+    public void testBatch() {
         final JsonNode params = jsonFromString("{\"text\": \"Hello World\"}");
         final JsonNode id1 = jsonFromString("123");
         final JsonNode id2 = jsonFromString("1234");

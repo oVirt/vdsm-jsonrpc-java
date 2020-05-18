@@ -57,9 +57,7 @@ public class JsonResponseUtil {
     }
 
     private void checkAndUpdateStatus() {
-        if (this.responseMap.get(STATUS) == null) {
-            this.responseMap.put(STATUS, STATUS_DONE);
-        }
+        this.responseMap.putIfAbsent(STATUS, STATUS_DONE);
     }
 
     /**

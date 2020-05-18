@@ -57,7 +57,7 @@ public class StompClientPolicy extends ClientPolicy {
     }
 
     @Override
-    public ClientPolicy clone() throws CloneNotSupportedException {
+    public ClientPolicy clone() {
         StompClientPolicy policy = new StompClientPolicy(this.getRetryTimeOut(),
                 this.getRetryNumber(),
                 this.getIncomingHeartbeat(),

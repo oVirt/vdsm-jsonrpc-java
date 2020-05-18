@@ -38,8 +38,7 @@ public abstract class SSLClient extends StompCommonClient {
     private SSLContext sslContext;
     private boolean client;
 
-    public SSLClient(Reactor reactor, Selector selector, String hostname, int port, SSLContext sslctx)
-            throws ClientConnectionException {
+    public SSLClient(Reactor reactor, Selector selector, String hostname, int port, SSLContext sslctx) {
         super(reactor, hostname, port);
         this.selector = selector;
         this.sslContext = sslctx;

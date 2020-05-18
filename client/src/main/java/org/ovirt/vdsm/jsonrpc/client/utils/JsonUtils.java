@@ -137,7 +137,7 @@ public class JsonUtils {
 
     public static String[] parse(String id) {
         String[] ids = id.split("\\|");
-        if (ids == null || ids.length == 0 || ids.length != 4) {
+        if (ids.length == 0 || ids.length != 4) {
             throw new IllegalArgumentException("wrong id format");
         }
         return ids;

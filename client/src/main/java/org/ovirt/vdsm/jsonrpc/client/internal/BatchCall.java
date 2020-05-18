@@ -3,7 +3,6 @@ package org.ovirt.vdsm.jsonrpc.client.internal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -55,15 +54,14 @@ public class BatchCall implements Future<List<JsonRpcResponse>>, JsonRpcCall {
     }
 
     @Override
-    public List<JsonRpcResponse> get() throws InterruptedException,
-            ExecutionException {
+    public List<JsonRpcResponse> get() throws InterruptedException {
         latch.await();
         return responses;
     }
 
     @Override
     public List<JsonRpcResponse> get(long time, TimeUnit unit)
-            throws InterruptedException, ExecutionException,
+            throws InterruptedException,
             TimeoutException {
         if (!latch.await(time, unit)) {
             throw new TimeoutException();

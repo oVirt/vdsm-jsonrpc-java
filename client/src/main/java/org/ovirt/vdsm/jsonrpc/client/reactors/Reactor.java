@@ -11,7 +11,6 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.AbstractSelector;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
@@ -46,7 +45,7 @@ public abstract class Reactor extends Thread {
         try {
             this.selector.select(TIMEOUT);
         } catch (IOException e) {
-            logException(LOG, "IOException occured", e);
+            logException(LOG, "IOException occurred", e);
         }
     }
 
@@ -60,7 +59,7 @@ public abstract class Reactor extends Thread {
             try {
                 this.scheduler.performPendingOperations();
             } catch (Exception e) {
-                logException(LOG, "Exception occured during running scheduled task", e);
+                logException(LOG, "Exception occurred during running scheduled task", e);
             }
             processChannels();
         }
@@ -71,7 +70,7 @@ public abstract class Reactor extends Thread {
      */
     private void processChannels() {
         this.selector.selectedKeys().stream()
-                .filter(key -> key.isValid())
+                .filter(SelectionKey::isValid)
                 .filter(key -> !(key.isAcceptable() && ((ReactorListener) key.attachment()).accept() == null))
                 .forEach(key -> {
                     if (key.isReadable() || key.isWritable()) {
@@ -98,7 +97,7 @@ public abstract class Reactor extends Thread {
             final ReactorClient client = (ReactorClient) key.attachment();
             try {
                 client.performAction();
-            } catch (IOException | ClientConnectionException e) {
+            } catch (IOException e) {
                 handleException(e, client, key, "Unable to process messages ");
             }
         });
@@ -121,18 +120,15 @@ public abstract class Reactor extends Thread {
 
     public Future<ReactorListener> createListener(final String hostname,
             final int port,
-            final ReactorListener.EventListener owner) throws ClientConnectionException {
+            final ReactorListener.EventListener owner) {
         final Reactor reactor = this;
         final FutureTask<ReactorListener> task = new FutureTask<>(
-                new Callable<ReactorListener>() {
-                    @Override
-                    public ReactorListener call() throws IOException {
-                        InetAddress address = InetAddress.getByName(hostname);
-                        return new ReactorListener(
-                                reactor,
-                                new InetSocketAddress(address, port),
-                                selector, owner);
-                    }
+                () -> {
+                    InetAddress address = InetAddress.getByName(hostname);
+                    return new ReactorListener(
+                            reactor,
+                            new InetSocketAddress(address, port),
+                            selector, owner);
                 });
         queueFuture(task);
         return task;
@@ -142,7 +138,7 @@ public abstract class Reactor extends Thread {
         return createClient(this, this.selector, hostname, port);
     }
 
-    public void close() throws IOException {
+    public void close() {
         this.isRunning = false;
         wakeup();
     }

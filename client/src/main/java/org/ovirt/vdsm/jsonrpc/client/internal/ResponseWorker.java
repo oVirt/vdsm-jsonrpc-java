@@ -7,7 +7,6 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.mapValues;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -21,7 +20,6 @@ import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 import org.ovirt.vdsm.jsonrpc.client.events.EventPublisher;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,14 +45,7 @@ public final class ResponseWorker extends Thread {
         this.tracker = new ResponseTracker();
         this.publisher =
                 new EventPublisher(new ForkJoinPool(parallelism,
-                        new ForkJoinWorkerThreadFactory() {
-
-                            @Override
-                            public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-                                return new ResponseForkJoinWorkerThread(pool);
-                            }
-
-                        },
+                        ResponseForkJoinWorkerThread::new,
                         null,
                         true),
                         eventTimeoutInHours);
@@ -85,13 +76,7 @@ public final class ResponseWorker extends Thread {
      */
     public JsonRpcClient register(ReactorClient client) {
         final JsonRpcClient jsonRpcClient = new JsonRpcClient(client, this.tracker);
-        client.addEventListener(new MessageListener() {
-
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(new MessageContext(jsonRpcClient, message));
-            }
-        });
+        client.addEventListener(message -> queue.add(new MessageContext(jsonRpcClient, message)));
         return jsonRpcClient;
     }
 
@@ -162,7 +147,6 @@ public final class ResponseWorker extends Thread {
             client.processResponse(JsonRpcResponse.fromJsonNode(node));
         } catch (IllegalArgumentException e) {
             logException(log, "Recieved response is not correct", e);
-            return;
         }
     }
 

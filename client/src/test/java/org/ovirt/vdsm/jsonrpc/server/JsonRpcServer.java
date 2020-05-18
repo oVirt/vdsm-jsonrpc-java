@@ -55,11 +55,7 @@ public class JsonRpcServer extends Thread {
     public void send(SocketChannel socket, byte[] data) {
         this.pendingChanges.add(new ChangeRequest(socket, ChangeRequest.CHANGEOPS, SelectionKey.OP_WRITE));
 
-        List<ByteBuffer> queue = this.pendingData.get(socket);
-        if (queue == null) {
-            queue = new ArrayList<ByteBuffer>();
-            this.pendingData.put(socket, queue);
-        }
+        List<ByteBuffer> queue = this.pendingData.computeIfAbsent(socket, k -> new ArrayList<>());
         ByteBuffer dataBuffer = ByteBuffer.wrap(data);
         ByteBuffer buffer = ByteBuffer.allocate(8);
         buffer.order(ByteOrder.BIG_ENDIAN);
@@ -181,7 +177,7 @@ public class JsonRpcServer extends Thread {
         List<ByteBuffer> queue = this.pendingData.get(socketChannel);
 
         while (!queue.isEmpty()) {
-            ByteBuffer buf = (ByteBuffer) queue.get(0);
+            ByteBuffer buf = queue.get(0);
             socketChannel.write(buf);
             if (buf.remaining() > 0) {
                 break;

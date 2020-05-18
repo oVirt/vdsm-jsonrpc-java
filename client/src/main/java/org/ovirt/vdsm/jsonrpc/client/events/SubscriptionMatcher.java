@@ -113,16 +113,10 @@ public class SubscriptionMatcher {
         if (holder != null) {
             subscriptions.add(holder);
         }
-        Predicate predicate = new Predicate() {
-
-            @Override
-            public boolean apply(int one, int two) {
-                return one == two;
-            }
-        };
-        addHolders(subscriptions, this.operation, 2, ids, predicate);
-        addHolders(subscriptions, this.component, 1, ids, predicate);
-        addHolders(subscriptions, this.receiver, 0, ids, predicate);
+        Predicate equalsPredicate = (one, two) -> one == two;
+        addHolders(subscriptions, this.operation, 2, ids, equalsPredicate);
+        addHolders(subscriptions, this.component, 1, ids, equalsPredicate);
+        addHolders(subscriptions, this.receiver, 0, ids, equalsPredicate);
         return subscriptions;
     }
 
@@ -141,7 +135,7 @@ public class SubscriptionMatcher {
                     int count = Collections.frequency(Arrays.asList(ids), ALL);
                     return predicate.apply(size, fids.size()) || count == 3;
                 })
-                .forEach(value -> holders.add(value));
+                .forEach(holders::add);
     }
 
     /**

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -24,7 +23,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
 
 // This class is heavily time dependent so there is
 // good number of timeouts. It is ignored due to time
@@ -45,32 +43,24 @@ public class TestReactor {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         this.reactorForListener.close();
         this.reactorForClient.close();
     }
 
     @Test
-    public void testConnectionBetweenListenerAndClient() throws UnknownHostException, InterruptedException,
+    public void testConnectionBetweenListenerAndClient() throws InterruptedException,
             ExecutionException, TimeoutException,
             ClientConnectionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
         final Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME, 6669,
-                new ReactorListener.EventListener() {
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                client -> client.addEventListener(message -> {
+                    try {
+                        client.sendMessage(message);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
         assertNotNull(listener);
@@ -79,12 +69,7 @@ public class TestReactor {
         ReactorClient client = this.reactorForClient.createClient(HOSTNAME, 6669);
         assertNotNull(client);
 
-        client.addEventListener(new MessageListener() {
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(message);
-            }
-        });
+        client.addEventListener(queue::add);
 
         final ByteBuffer buff = ByteBuffer.allocate(DATA.length());
         buff.put(DATA.getBytes());
@@ -105,47 +90,26 @@ public class TestReactor {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
         final ExecutorService executorService = Executors.newCachedThreadPool();
 
-        final Callable<ReactorClient> clientTask = new Callable<ReactorClient>() {
+        final Callable<ReactorClient> clientTask = () -> {
+            ReactorClient client = reactorForClient.createClient(HOSTNAME, 6668);
 
-            @Override
-            public ReactorClient call() throws Exception {
-                ReactorClient client = reactorForClient.createClient(HOSTNAME, 6668);
-
-                client.addEventListener(new MessageListener() {
-                    @Override
-                    public void onMessageReceived(byte[] message) {
-                        queue.add(message);
-                    }
-                });
-                client.setClientPolicy(new ClientPolicy(2000, 10, 10000, IOException.class));
-                client.connect();
-                return client;
-            }
+            client.addEventListener(queue::add);
+            client.setClientPolicy(new ClientPolicy(2000, 10, 10000, IOException.class));
+            client.connect();
+            return client;
         };
 
-        final Callable<ReactorListener> listenerTask = new Callable<ReactorListener>() {
+        final Callable<ReactorListener> listenerTask = () -> {
+            final Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, 6668,
+                    client -> client.addEventListener(message -> {
+                        try {
+                            client.sendMessage(message);
+                        } catch (ClientConnectionException e) {
+                            fail();
+                        }
+                    }));
 
-            @Override
-            public ReactorListener call() throws Exception {
-                final Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, 6668,
-                        new ReactorListener.EventListener() {
-                            @Override
-                            public void onAcccept(final ReactorClient client) {
-                                client.addEventListener(new MessageListener() {
-                                    @Override
-                                    public void onMessageReceived(byte[] message) {
-                                        try {
-                                            client.sendMessage(message);
-                                        } catch (ClientConnectionException e) {
-                                            fail();
-                                        }
-                                    }
-                                });
-                            }
-                        });
-
-                return futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
-            }
+            return futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
         };
         Future<ReactorClient> clientFuture = executorService.submit(clientTask);
         Thread.sleep(2000);
@@ -173,24 +137,16 @@ public class TestReactor {
 
     @Test
     public void testNotConnectedRetry() throws InterruptedException, TimeoutException, ClientConnectionException,
-            ExecutionException, IOException {
+            ExecutionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
         Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME, 6667,
-                new ReactorListener.EventListener() {
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                client -> client.addEventListener(message -> {
+                    try {
+                        client.sendMessage(message);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
         assertNotNull(listener);
@@ -199,31 +155,18 @@ public class TestReactor {
         ReactorClient client = this.reactorForClient.createClient(HOSTNAME, 6667);
         assertNotNull(client);
 
-        client.addEventListener(new MessageListener() {
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(message);
-            }
-        });
+        client.addEventListener(queue::add);
         client.connect();
         listener.close();
 
         futureListener = this.reactorForListener.createListener(HOSTNAME, 6667,
-                new ReactorListener.EventListener() {
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                _client -> _client.addEventListener(message -> {
+                    try {
+                        _client.sendMessage(message);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 

@@ -24,7 +24,6 @@ import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener.EventListener;
 
 // Takes a long time to finish
 @Ignore
@@ -61,16 +60,10 @@ public class HeartbeatTestCase {
                 provider = null;
             }
             if (sendingReactor != null) {
-                try {
-                    sendingReactor.close();
-                } catch (IOException ignored) {
-                }
+                sendingReactor.close();
             }
             if (listeningReactor != null) {
-                try {
-                    listeningReactor.close();
-                } catch (IOException ignored) {
-                }
+                listeningReactor.close();
             }
         }
     }
@@ -89,16 +82,10 @@ public class HeartbeatTestCase {
             fail();
         } finally {
             if (sendingReactor != null) {
-                try {
-                    sendingReactor.close();
-                } catch (IOException ignored) {
-                }
+                sendingReactor.close();
             }
             if (listeningReactor != null) {
-                try {
-                    listeningReactor.close();
-                } catch (IOException ignored) {
-                }
+                listeningReactor.close();
             }
         }
     }
@@ -109,13 +96,7 @@ public class HeartbeatTestCase {
             throws ClientConnectionException,
             InterruptedException, ExecutionException {
         Future<ReactorListener> futureListener =
-                listeningReactor.createListener(HOSTNAME, 0, new EventListener() {
-
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        listeningClient = client;
-                    }
-                });
+                listeningReactor.createListener(HOSTNAME, 0, client -> listeningClient = client);
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);

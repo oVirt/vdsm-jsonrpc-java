@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class ReactorClient {
     public interface MessageListener {
-        public void onMessageReceived(byte[] message);
+        void onMessageReceived(byte[] message);
     }
     public static final String CLIENT_CLOSED = "Client close";
     public static final int BUFFER_SIZE = 1024;
@@ -50,9 +50,9 @@ public abstract class ReactorClient {
     private final String hostname;
     private final int port;
     private final Lock lock;
-    private AtomicLong lastIncomingHeartbeat = new AtomicLong(0);
-    private AtomicLong lastOutgoingHeartbeat = new AtomicLong(0);
-    private AtomicBoolean closing = new AtomicBoolean();
+    private final AtomicLong lastIncomingHeartbeat = new AtomicLong(0);
+    private final AtomicLong lastOutgoingHeartbeat = new AtomicLong(0);
+    private final AtomicBoolean closing = new AtomicBoolean();
     protected boolean half = true;
     protected volatile ClientPolicy policy = new DefaultConnectionRetryPolicy();
     protected final List<MessageListener> eventListeners;
@@ -66,7 +66,7 @@ public abstract class ReactorClient {
         this.reactor = reactor;
         this.hostname = hostname;
         this.port = port;
-        this.eventListeners = new CopyOnWriteArrayList<MessageListener>();
+        this.eventListeners = new CopyOnWriteArrayList<>();
         this.lock = new ReentrantLock();
         this.outbox = new ConcurrentLinkedDeque<>();
         this.closing.set(false);
@@ -250,7 +250,7 @@ public abstract class ReactorClient {
         this.lastOutgoingHeartbeat.set(this.now());
     }
 
-    protected void processOutgoing() throws IOException, ClientConnectionException {
+    protected void processOutgoing() throws IOException {
         final ByteBuffer buff = outbox.peekLast();
 
         if (buff == null) {
@@ -269,10 +269,10 @@ public abstract class ReactorClient {
     protected void closeChannel() {
         this.closing.set(true);
         clean();
-        final Callable<Void> callable = new Callable<Void>() {
+        final Callable<Void> callable = new Callable<>() {
 
             @Override
-            public Void call() throws Exception {
+            public Void call() {
                 if (lock.tryLock()) {
                     try {
                         if (channel != null) {
@@ -305,7 +305,7 @@ public abstract class ReactorClient {
         return Objects.hashCode(this.channel);
     }
 
-    public void performAction() throws IOException, ClientConnectionException {
+    public void performAction() throws IOException {
         if (!this.isInInit() && this.policy.isOutgoingHeartbeat() && this.isOutgoingHeartbeatExceeded()) {
             this.sendHeartbeat();
             this.processOutgoing();

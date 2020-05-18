@@ -19,14 +19,7 @@ public class EventTestUtls {
 
     public static EventPublisher createPublisher() {
         return new EventPublisher(new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
-                new ForkJoinWorkerThreadFactory() {
-
-                    @Override
-                    public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-                        return new ResponseForkJoinWorkerThread(pool);
-                    }
-
-                },
+                ResponseForkJoinWorkerThread::new,
                 null,
                 true),
                 EVENT_TIMEOUT_IN_HOURS);

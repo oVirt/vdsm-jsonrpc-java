@@ -80,10 +80,8 @@ public class SSLStompListener extends SSLStompClient implements Sender {
         try {
             this.nioEngine = new SSLEngineNioHelper(channel, createSSLEngine(false), callback, this);
             this.nioEngine.beginHandshake();
-
-            int interestedOps = SelectionKey.OP_READ;
             reactor.wakeup();
-            key = this.channel.register(selector, interestedOps |= SelectionKey.OP_WRITE, this);
+            key = this.channel.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE, this);
         } catch (ClosedChannelException | SSLException e) {
             logException(log, "Connection issues during ssl client creation", e);
             throw new ClientConnectionException(e);

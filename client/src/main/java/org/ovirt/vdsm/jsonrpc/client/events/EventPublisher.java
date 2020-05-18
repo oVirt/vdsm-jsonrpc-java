@@ -45,7 +45,7 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
 
     private void scheduleCleanupTask() {
         try {
-            scheduledExecutorService.scheduleWithFixedDelay(() -> cleanupOldEvents(),
+            scheduledExecutorService.scheduleWithFixedDelay(this::cleanupOldEvents,
                     eventTimeoutInHours,
                     eventTimeoutInHours,
                     TimeUnit.HOURS);
@@ -61,7 +61,7 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
                 holder.purgeOldEventsIfNotConsumed(eventTimeoutInHours);
             }
         } catch (Throwable t) {
-            log.error("Error purging old events from SubscriptionHolder : ", ExceptionUtils.getRootCauseMessage(t));
+            log.error("Error purging old events from SubscriptionHolder : {}", ExceptionUtils.getRootCauseMessage(t));
             log.debug("Exception", t);
         }
     }
@@ -117,7 +117,7 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
         Set<SubscriptionHolder> holders = matcher.match(event);
         holders.stream()
                 .peek(holder -> holder.putEvent(event))
-                .filter(holder -> holder.canProcess())
+                .filter(SubscriptionHolder::canProcess)
                 .forEach(holder -> this.executorService.submit(new EventCallable(holder, this.decomposer)));
     }
 
@@ -129,7 +129,7 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
     public int countEvents(JsonRpcEvent event) {
         Set<SubscriptionHolder> holders = matcher.match(event);
         return holders.stream()
-                .mapToInt(holder -> holder.getNumberOfEvents())
+                .mapToInt(SubscriptionHolder::getNumberOfEvents)
                 .sum();
     }
 
@@ -154,7 +154,7 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
         }
 
         @Override
-        public Void call() throws Exception {
+        public Void call() {
             Subscriber<Map<String, Object>> subscriber = this.holder.getSubscriber();
             JsonRpcEvent event;
             while ((event = this.holder.canProcessMore()) != null) {

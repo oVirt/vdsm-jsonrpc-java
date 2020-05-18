@@ -63,7 +63,7 @@ public class SubscriptionHolder {
 
     private void filter() {
         String[] ids = this.getParsedId();
-        this.filteredId = Arrays.asList(ids).stream()
+        this.filteredId = Arrays.stream(ids)
                 .filter(id -> !ALL.equals(id))
                 .collect(Collectors.toList());
     }

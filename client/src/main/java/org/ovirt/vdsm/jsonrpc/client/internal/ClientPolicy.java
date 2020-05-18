@@ -160,7 +160,7 @@ public class ClientPolicy {
     }
 
     @Override
-    public ClientPolicy clone() throws CloneNotSupportedException {
+    public ClientPolicy clone() {
         return new ClientPolicy(this.retryTimeOut, this.retryNumber, this.incomingHeartbeat, this.outgoingHeartbeat,
                 this.exceptions);
     }

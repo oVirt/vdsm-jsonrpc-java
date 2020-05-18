@@ -32,7 +32,7 @@ public class ResponseTrackerTestCase {
     private JsonNode idNode = new TextNode(UUID.randomUUID().toString());
 
     @Before
-    public void setup() throws ClientConnectionException {
+    public void setup() {
         request = mock(JsonRpcRequest.class);
         tracking = mock(ResponseTracking.class);
         client = spy(new StompClient(mock(Reactor.class), mock(Selector.class), "127.0.0.1", 54321));

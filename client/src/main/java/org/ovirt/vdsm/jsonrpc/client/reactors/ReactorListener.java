@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ReactorListener {
     public interface EventListener extends java.util.EventListener {
-        public void onAcccept(ReactorClient client);
+        void onAcccept(ReactorClient client);
     }
 
     private static Logger log = LoggerFactory.getLogger(ReactorListener.class);
@@ -89,16 +89,13 @@ public final class ReactorListener {
     }
 
     public Future<Void> close() {
-        final Future<Void> task = new FutureTask<>(new Callable<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    channel.close();
-                } catch (IOException e) {
-                    // Ignore
-                }
-                return null;
+        final Future<Void> task = new FutureTask<>(() -> {
+            try {
+                channel.close();
+            } catch (IOException e) {
+                // Ignore
             }
+            return null;
         });
         this.reactor.queueFuture(task);
         return task;

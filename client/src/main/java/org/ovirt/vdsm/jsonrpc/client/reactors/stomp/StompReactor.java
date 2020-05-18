@@ -23,7 +23,7 @@ public class StompReactor extends Reactor {
     public ReactorClient createClient(Reactor reactor,
             Selector selector,
             String hostname,
-            int port) throws ClientConnectionException {
+            int port) {
         return new StompClient(reactor, selector, hostname, port);
     }
 

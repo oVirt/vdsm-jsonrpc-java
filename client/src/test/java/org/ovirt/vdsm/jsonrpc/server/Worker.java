@@ -46,7 +46,7 @@ public class Worker extends Thread {
         ServerDataEvent dataEvent;
         while (true) {
             try {
-                dataEvent = (ServerDataEvent) this.queue.poll(TIMEOUT_SEC, TimeUnit.SECONDS);
+                dataEvent = this.queue.poll(TIMEOUT_SEC, TimeUnit.SECONDS);
                 JsonNode rootNode = mapper.readTree(dataEvent.data);
                 JsonNode result = null;
                 if (rootNode.isArray()) {
@@ -54,7 +54,7 @@ public class Worker extends Thread {
                     for (JsonNode singleNode : rootNode) {
                         array.add(process(singleNode));
                     }
-                    result = (JsonNode) array;
+                    result = array;
                 } else {
                     result = process(rootNode);
                 }

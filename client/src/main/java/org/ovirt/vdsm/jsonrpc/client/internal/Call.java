@@ -2,7 +2,6 @@ package org.ovirt.vdsm.jsonrpc.client.internal;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -48,14 +47,13 @@ public class Call implements Future<JsonRpcResponse>, JsonRpcCall {
     }
 
     @Override
-    public JsonRpcResponse get() throws InterruptedException,
-            ExecutionException {
+    public JsonRpcResponse get() throws InterruptedException {
         return extractResponse(this.batchCall.get());
     }
 
     @Override
     public JsonRpcResponse get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException,
+            throws InterruptedException,
             TimeoutException {
         return extractResponse(this.batchCall.get(timeout, unit));
     }

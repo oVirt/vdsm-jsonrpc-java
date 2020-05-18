@@ -52,7 +52,7 @@ public class SSLStompClientTestCase {
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() {
         this.provider.closeStreams();
         this.provider = null;
         this.sendingReactor.close();

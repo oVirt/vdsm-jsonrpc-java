@@ -20,9 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener.EventListener;
 
 public class StompClientTestCase {
     private static final int TIMEOUT_SEC = 20;
@@ -37,7 +35,7 @@ public class StompClientTestCase {
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() {
         this.sendingReactor.close();
         this.listeningReactor.close();
     }
@@ -56,22 +54,13 @@ public class StompClientTestCase {
             ExecutionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, 0, new EventListener() {
-
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                this.listeningReactor.createListener(HOSTNAME, 0, client -> client.addEventListener(_message -> {
+                    try {
+                        client.sendMessage(_message);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);
@@ -79,13 +68,7 @@ public class StompClientTestCase {
         ReactorClient client = this.sendingReactor.createClient(HOSTNAME, listener.getPort());
         client.setClientPolicy(
                 new StompClientPolicy(180000, 0, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        client.addEventListener(new ReactorClient.MessageListener() {
-
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(message);
-            }
-        });
+        client.addEventListener(queue::add);
         client.connect();
 
         client.sendMessage(message.getBytes(UTF8));

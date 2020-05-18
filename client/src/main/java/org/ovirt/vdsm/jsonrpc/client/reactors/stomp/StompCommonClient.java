@@ -97,7 +97,7 @@ public abstract class StompCommonClient extends ReactorClient {
     @Override
     public Future<Void> close() {
         clean();
-        subscriptionIds.stream().forEach(
+        subscriptionIds.forEach(
                 subscriptionId -> send(new Message().unsubscribe().withHeader(HEADER_ID, subscriptionId).build()));
         send(new Message().disconnect().withHeader(HEADER_RECEIPT, UUID.randomUUID().toString()).build());
         return super.close();

@@ -27,7 +27,6 @@ import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorType;
@@ -78,22 +77,14 @@ public class JsonRpcClientConnectivityTestCase {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testRetryMessageSend() throws IOException, InterruptedException, ExecutionException, TimeoutException,
+    public void testRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
             ClientConnectionException {
         // Given
         Reactor reactorForListener = getReactor();
         Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, PORT,
-                new ReactorListener.EventListener() {
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                // if timing is wrong ignore the message
-                            }
-                        });
-                    }
-                });
+                client -> client.addEventListener(message -> {
+                    // if timing is wrong ignore the message
+                }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 
@@ -131,21 +122,13 @@ public class JsonRpcClientConnectivityTestCase {
     @SuppressWarnings("unchecked")
     @Test
     public void testBulkRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
-            IOException, ClientConnectionException {
+            ClientConnectionException {
         // Given
         Reactor reactorForListener = getReactor();
         Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, PORT + 1,
-                new ReactorListener.EventListener() {
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                // if timing is wrong ignore the message
-                            }
-                        });
-                    }
-                });
+                client -> client.addEventListener(message -> {
+                    // if timing is wrong ignore the message
+                }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 

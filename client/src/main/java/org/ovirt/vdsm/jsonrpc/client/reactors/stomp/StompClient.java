@@ -54,14 +54,9 @@ public class StompClient extends PlainClient {
             sendNow(message.build());
 
             try {
-                AwaitRetry.retry(new Callable<Void>() {
-
-                    @Override
-                    public Void call() throws Exception {
-                        connected.await(policy.getRetryTimeOut(), policy.getTimeUnit());
-                        return null;
-                    }
-
+                AwaitRetry.retry((Callable<Void>) () -> {
+                    connected.await(policy.getRetryTimeOut(), policy.getTimeUnit());
+                    return null;
                 });
             } catch (Exception e) {
                 disconnect("Waiting for connect interrupted");
@@ -77,8 +72,7 @@ public class StompClient extends PlainClient {
         }
     };
 
-    public StompClient(Reactor reactor, Selector selector, String hostname, int port)
-            throws ClientConnectionException {
+    public StompClient(Reactor reactor, Selector selector, String hostname, int port) {
         super(reactor, selector, hostname, port);
     }
 

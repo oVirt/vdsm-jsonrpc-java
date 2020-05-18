@@ -84,11 +84,11 @@ public class MatcherTestCase {
     public void testUidAndOperationSubscription() {
         SubscriptionHolder holder = mock(SubscriptionHolder.class);
         when(holder.getId()).thenReturn("*|*|test|uuid");
-        when(holder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test", "uuid")));
+        when(holder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test", "uuid")));
 
         SubscriptionHolder differentHolder = mock(SubscriptionHolder.class);
         when(differentHolder.getId()).thenReturn("*|*|test|*");
-        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test")));
+        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test")));
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);

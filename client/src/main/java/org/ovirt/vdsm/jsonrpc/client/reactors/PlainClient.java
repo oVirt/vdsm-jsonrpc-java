@@ -21,7 +21,7 @@ import org.ovirt.vdsm.jsonrpc.client.utils.retry.Retryable;
 public abstract class PlainClient extends StompCommonClient {
     protected final Selector selector;
 
-    public PlainClient(Reactor reactor, Selector selector, String hostname, int port) throws ClientConnectionException {
+    public PlainClient(Reactor reactor, Selector selector, String hostname, int port) {
         super(reactor, hostname, port);
         this.selector = selector;
     }

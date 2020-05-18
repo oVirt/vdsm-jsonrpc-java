@@ -31,24 +31,24 @@ public class ReactorClientTestCase {
         }
 
         @Override
-        protected void processIncoming() throws IOException, ClientConnectionException {
+        protected void processIncoming() {
         }
 
         @Override
-        public void sendMessage(byte[] message) throws ClientConnectionException {
+        public void sendMessage(byte[] message) {
         }
 
         @Override
-        protected int read(ByteBuffer buff) throws IOException {
+        protected int read(ByteBuffer buff) {
             return 0;
         }
 
         @Override
-        protected void write(ByteBuffer buff) throws IOException {
+        protected void write(ByteBuffer buff) {
         }
 
         @Override
-        protected void postConnect(OneTimeCallback callback) throws ClientConnectionException {
+        protected void postConnect(OneTimeCallback callback) {
         }
 
         @Override

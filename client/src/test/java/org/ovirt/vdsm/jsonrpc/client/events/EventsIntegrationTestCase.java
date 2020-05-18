@@ -7,7 +7,6 @@ import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.MESSAGE_CONTENT
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -23,7 +22,6 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener.EventListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorType;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
 import org.reactivestreams.Subscription;
@@ -46,13 +44,13 @@ public class EventsIntegrationTestCase {
     private boolean completed = false;
 
     @Before
-    public void setUp() throws IOException, ClientConnectionException {
+    public void setUp() throws ClientConnectionException {
         this.listeningReactor = ReactorFactory.getReactor(null, ReactorType.STOMP);
         this.sendingReactor = ReactorFactory.getReactor(null, ReactorType.STOMP);
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() {
         this.sendingReactor.close();
         this.listeningReactor.close();
     }
@@ -60,13 +58,7 @@ public class EventsIntegrationTestCase {
     @Test
     public void testEvents() throws ClientConnectionException, InterruptedException, ExecutionException {
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, PORT, new EventListener() {
-
-                    @Override
-                    public void onAcccept(final ReactorClient client) {
-                        listeningClient = client;
-                    }
-                });
+                this.listeningReactor.createListener(HOSTNAME, PORT, client -> listeningClient = client);
 
         ReactorListener listener = futureListener.get();
 
@@ -94,7 +86,7 @@ public class EventsIntegrationTestCase {
                 if (map == null || map.isEmpty()) {
                     fail();
                 }
-                if (map.get("value").equals(new Integer(42))) {
+                if (map.get("value").equals(42)) {
                     counter++;
                 }
                 if (counter == LIMIT) {

@@ -68,8 +68,7 @@ public class SSLStompClient extends SSLClient {
 
     };
 
-    public SSLStompClient(Reactor reactor, Selector selector, String hostname, int port, SSLContext sslContext)
-            throws ClientConnectionException {
+    public SSLStompClient(Reactor reactor, Selector selector, String hostname, int port, SSLContext sslContext) {
         super(reactor, selector, hostname, port, sslContext);
         setWaitForConnect();
     }
@@ -105,7 +104,7 @@ public class SSLStompClient extends SSLClient {
         this.subscribed = new CountDownLatch(1);
     }
 
-    private void waitForConnect() throws ClientConnectionException {
+    private void waitForConnect() {
         try {
             AwaitRetry.retry(() -> {
                 connected.await(policy.getRetryTimeOut(), policy.getTimeUnit());
