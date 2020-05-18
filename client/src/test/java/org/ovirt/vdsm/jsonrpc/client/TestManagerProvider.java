@@ -20,22 +20,9 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.ManagerProvider;
 
 public class TestManagerProvider extends ManagerProvider {
 
-    private static final String KEY_STORE_FILE = "/home/pkliczewski/git/vdsm-jsonrpc-java/client/src/"
-            + "test/resources/jsonrpc-tests.p12";
-    private static final String TRUST_STORE_FILE = "/home/pkliczewski/git/vdsm-jsonrpc-java/client/src/"
-            + "test/resources/jsonrpc-tests.p12";
-    private static final String PASSWORD = "x";
     private InputStream keyStream;
     private InputStream trustStream;
     private String pass;
-
-    public TestManagerProvider() throws FileNotFoundException {
-        this(KEY_STORE_FILE, TRUST_STORE_FILE, PASSWORD);
-    }
-
-    public TestManagerProvider(String keyStorePath, String trustStorePath, String pass) throws FileNotFoundException {
-        this(new FileInputStream(new File(keyStorePath)), new FileInputStream(new File(trustStorePath)), pass);
-    }
 
     public TestManagerProvider(InputStream keyStream, InputStream trustStream, String pass) {
         this.keyStream = keyStream;

@@ -4,6 +4,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.SSLStompClientTestCase.createProvider;
+import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
+import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -13,20 +15,17 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 
-import org.junit.Ignore;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.TestManagerProvider;
-import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
 
 // Takes a long time to finish
-@Ignore
 @RunWith(Theories.class)
 public class HeartbeatTestCase {
 
@@ -102,7 +101,9 @@ public class HeartbeatTestCase {
         assertNotNull(listener);
 
         ReactorClient client = sendingReactor.createClient(HOSTNAME, listener.getPort());
-        client.setClientPolicy(new ClientPolicy(180000, 0, incoming, outgoing));
+        var policy = new StompClientPolicy(180000, 0, incoming, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE);
+        policy.setOutgoingHeartbeat(outgoing);
+        client.setClientPolicy(policy);
         client.connect();
 
         TimeUnit.SECONDS.sleep(WAIT_TIMEOUT);
