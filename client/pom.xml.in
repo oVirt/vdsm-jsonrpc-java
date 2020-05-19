@@ -77,6 +77,11 @@
                     <configuration>
                         <skipTests>${skipTests}</skipTests>
                         <argLine>--illegal-access=permit</argLine>
+                        <parallel>all</parallel>
+                        <threadCount>8</threadCount>
+                        <perCoreThreadCount>true</perCoreThreadCount>
+                        <forkCount>1C</forkCount>
+                        <reuseForks>true</reuseForks>
                     </configuration>
                 </plugin>
             </plugins>
@@ -142,8 +147,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
-					<skipTests>${skipTests}</skipTests>
-					<argLine>--illegal-access=permit</argLine>
                     <excludes>
                         <!-- disable long running tests -->
                         <exclude>**/HeartbeatTestCase.java</exclude>
@@ -200,8 +203,6 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <skipTests>${skipTests}</skipTests>
-                            <argLine>--illegal-access=permit</argLine>
                             <excludes>
                                 <exclude>none</exclude>
                             </excludes>
