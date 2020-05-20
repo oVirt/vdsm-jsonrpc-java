@@ -61,6 +61,7 @@ all-local:
 	$(MKDIR_P) "$(targetdir)"
 	$(MVN) \
 		-D altDeploymentRepository=install::default::file://$(targetdir)/maven \
+		-D skipTests=true \
 		deploy
 	for artifact in client; do \
 		find "$(targetdir)/maven" -name "$(PACKAGE_NAME)-$${artifact}-$(PACKAGE_MAVEN_VERSION)*.jar" | while read f; do \

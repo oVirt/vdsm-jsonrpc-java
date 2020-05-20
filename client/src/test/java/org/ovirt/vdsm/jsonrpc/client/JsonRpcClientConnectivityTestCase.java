@@ -20,50 +20,70 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.Ignore;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorType;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
+import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
+import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 
-// it takes too long to have it as part of build process
-@Ignore
+import com.fasterxml.jackson.databind.JsonNode;
+
 public class JsonRpcClientConnectivityTestCase {
 
     private static final String HOSTNAME = "127.0.0.1";
-    private static final int PORT = 54321;
+
     private static final int CONNECTION_RETRY = 1;
     private static final int TIMEOUT = 1000;
     private static final int TIMEOUT_SEC = 3;
     private static final int HEART_BEAT = 1000;
     private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
-    private Reactor getReactor() throws ClientConnectionException {
-        return ReactorFactory.getReactor(null, ReactorType.STOMP);
+    private int port;
+    private Reactor clientReactor;
+    private Reactor listenerReactor;
+    private ResponseWorker worker;
+
+    @Before
+    public void setup() throws IOException {
+        port = FreePorts.findFreePort();
+        worker = new ResponseWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
+        this.clientReactor = new StompReactor();
+        this.listenerReactor = new StompReactor();
+    }
+
+    @After
+    public void tearDown() {
+        this.clientReactor.close();
+        this.listenerReactor.close();
+        this.worker.close();
     }
 
     @Test(expected = ConnectException.class)
     public void testDelayedConnect() throws Throwable {
         // Given
-        Reactor reactor = getReactor();
-        final ReactorClient client = reactor.createClient(HOSTNAME, 3333);
-        client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
-                DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker =
-                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
+        final ReactorClient client = clientReactor.createClient(HOSTNAME, port);
+        StompClientPolicy policy = new StompClientPolicy(TIMEOUT,
+                CONNECTION_RETRY,
+                HEART_BEAT,
+                IOException.class,
+                DEFAULT_REQUEST_QUEUE,
+                DEFAULT_RESPONSE_QUEUE);
+        client.setClientPolicy(policy);
         JsonRpcClient jsonClient = worker.register(client);
+        jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 0, 0));
         JsonRpcRequest request = mock(JsonRpcRequest.class);
         when(request.getId()).thenReturn(mock(JsonNode.class));
 
         assertNotNull(jsonClient);
         assertFalse(client.isOpen());
 
+        // When
         try {
             // When
             jsonClient.call(request);
@@ -80,20 +100,21 @@ public class JsonRpcClientConnectivityTestCase {
     public void testRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
             ClientConnectionException {
         // Given
-        Reactor reactorForListener = getReactor();
-        Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, PORT,
+        Future<ReactorListener> futureListener = listenerReactor.createListener(HOSTNAME,
+                port,
                 client -> client.addEventListener(message -> {
                     // if timing is wrong ignore the message
                 }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 
-        Reactor reactor = getReactor();
-        final ReactorClient client = reactor.createClient(HOSTNAME, PORT);
-        client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
-                DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker =
-                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
+        final ReactorClient client = clientReactor.createClient(HOSTNAME, port);
+        client.setClientPolicy(new StompClientPolicy(TIMEOUT,
+                CONNECTION_RETRY,
+                HEART_BEAT,
+                IOException.class,
+                DEFAULT_REQUEST_QUEUE,
+                DEFAULT_RESPONSE_QUEUE));
         JsonRpcClient jsonClient = worker.register(client);
         jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 2, HEART_BEAT));
         JsonRpcRequest request = mock(JsonRpcRequest.class);
@@ -105,7 +126,8 @@ public class JsonRpcClientConnectivityTestCase {
         // When
         Future<JsonRpcResponse> future = jsonClient.call(request);
         listener.close();
-        reactorForListener.close();
+        clientReactor.close();
+        listenerReactor.close();
         client.close();
 
         // Then
@@ -124,22 +146,23 @@ public class JsonRpcClientConnectivityTestCase {
     public void testBulkRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
             ClientConnectionException {
         // Given
-        Reactor reactorForListener = getReactor();
-        Future<ReactorListener> futureListener = reactorForListener.createListener(HOSTNAME, PORT + 1,
+        Future<ReactorListener> futureListener = listenerReactor.createListener(HOSTNAME,
+                port,
                 client -> client.addEventListener(message -> {
                     // if timing is wrong ignore the message
                 }));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 
-        Reactor reactor = getReactor();
-        final ReactorClient client = reactor.createClient(HOSTNAME, PORT + 1);
-        client.setClientPolicy(new StompClientPolicy(TIMEOUT, CONNECTION_RETRY, HEART_BEAT, IOException.class,
-                DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        ResponseWorker worker =
-                ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
+        final ReactorClient client = clientReactor.createClient(HOSTNAME, port);
+        client.setClientPolicy(new StompClientPolicy(TIMEOUT,
+                CONNECTION_RETRY,
+                HEART_BEAT,
+                IOException.class,
+                DEFAULT_REQUEST_QUEUE,
+                DEFAULT_RESPONSE_QUEUE));
         JsonRpcClient jsonClient = worker.register(client);
-        jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 2, HEART_BEAT));
+        jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 1, HEART_BEAT));
 
         final JsonNode params = jsonFromString("{\"text\": \"Hello World\"}");
         final JsonNode id1 = jsonFromString("123");
@@ -153,7 +176,8 @@ public class JsonRpcClientConnectivityTestCase {
         // When
         Future<List<JsonRpcResponse>> future = jsonClient.batchCall(Arrays.asList(requests));
         listener.close();
-        reactorForListener.close();
+        clientReactor.close();
+        listenerReactor.close();
         client.close();
 
         // Then
@@ -161,12 +185,12 @@ public class JsonRpcClientConnectivityTestCase {
         assertNotNull(responses);
         assertEquals(2, responses.size());
 
-        for (JsonRpcResponse response : responses) {
+        responses.forEach(response -> {
             ResponseDecomposer decomposer = new ResponseDecomposer(response);
             Map<String, Object> error = decomposer.decomposeError();
             assertNotNull(error);
             Map<String, Object> status = (Map<String, Object>) error.get("status");
             assertEquals(5022, status.get("code"));
-        }
+        });
     }
 }
