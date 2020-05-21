@@ -1,7 +1,7 @@
 package org.ovirt.vdsm.jsonrpc.client.events;
 
-import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.MESSAGE_CONTENT;
-import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.createPublisher;
+import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.MESSAGE_CONTENT;
+import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.createPublisher;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,13 +11,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
+import org.ovirt.vdsm.jsonrpc.testutils.Performance;
 import org.reactivestreams.Subscription;
 
-//Remove when measuring throughput
-@Ignore
 public class EventsThroughputTestCase {
     private static final JsonRpcEvent EVENT = JsonRpcEvent.fromByteArray(MESSAGE_CONTENT.getBytes());
     private static final int TIMEOUT = 10000;
@@ -64,6 +63,7 @@ public class EventsThroughputTestCase {
     }
 
     @Test
+    @Category(Performance.class)
     public void testThroughput() {
         for (int i = 0; i < TIMES; i++) {
             subscribe("*|*|*|update");

@@ -2,7 +2,7 @@ package org.ovirt.vdsm.jsonrpc.client.events;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.createPublisher;
+import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.createPublisher;
 
 import java.io.IOException;
 import java.util.HashMap;

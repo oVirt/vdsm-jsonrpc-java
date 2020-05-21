@@ -3,10 +3,11 @@ package org.ovirt.vdsm.jsonrpc.client.events;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.MESSAGE_CONTENT;
+import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.MESSAGE_CONTENT;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -14,24 +15,23 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorType;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
+import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
+import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
+import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
 import org.reactivestreams.Subscription;
 
-
-@Ignore
 public class EventsIntegrationTestCase {
 
     private static final String HOSTNAME = "localhost";
-    private static final int PORT = 0;
+
     private static final int LIMIT = 10;
     private static final int EVENT_TIMEOUT_IN_HOURS = 10;
 
@@ -40,13 +40,15 @@ public class EventsIntegrationTestCase {
 
     private ReactorClient listeningClient = null;
 
-    private int counter = 0;
-    private boolean completed = false;
+    private int port;
+    private volatile int counter = 0;
+    private volatile boolean completed = false;
 
     @Before
-    public void setUp() throws ClientConnectionException {
-        this.listeningReactor = ReactorFactory.getReactor(null, ReactorType.STOMP);
-        this.sendingReactor = ReactorFactory.getReactor(null, ReactorType.STOMP);
+    public void setUp() throws IOException {
+        this.port = FreePorts.findFreePort();
+        this.listeningReactor = new StompReactor();
+        this.sendingReactor = new StompReactor();
     }
 
     @After
@@ -56,17 +58,18 @@ public class EventsIntegrationTestCase {
     }
 
     @Test
+    @Category(TimeDepending.class)
     public void testEvents() throws ClientConnectionException, InterruptedException, ExecutionException {
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, PORT, client -> listeningClient = client);
+                this.listeningReactor.createListener(HOSTNAME, port, client -> listeningClient = client);
 
         ReactorListener listener = futureListener.get();
 
         ReactorClient client = this.sendingReactor.createClient(HOSTNAME, listener.getPort());
         client.setClientPolicy(
-                new StompClientPolicy(180000, 0, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
+                new StompClientPolicy(300, 5, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
 
-        ResponseWorker worker = ReactorFactory.getWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
+        ResponseWorker worker = new ResponseWorker(Runtime.getRuntime().availableProcessors(), EVENT_TIMEOUT_IN_HOURS);
         worker.register(client);
         client.connect();
 
@@ -111,15 +114,17 @@ public class EventsIntegrationTestCase {
         generator.join();
 
         // make sure events are delivered
-        TimeUnit.MILLISECONDS.sleep(500);
+        TimeUnit.MILLISECONDS.sleep(1500);
 
         assertEquals(LIMIT, counter);
         assertTrue(completed);
+
+        worker.close();
     }
 
     class EventGenerator implements Runnable {
         private static final long TIMEOUT = 50;
-        private ReactorClient client;
+        private final ReactorClient client;
         private int counter;
         private boolean isRunning = true;
 

@@ -17,7 +17,7 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.utils.OneTimeCallback;
 
 public class ReactorClientTestCase {
-    private class TestReactorClient extends ReactorClient {
+    private static class TestReactorClient extends ReactorClient {
 
         private boolean open;
         private boolean isInInit;

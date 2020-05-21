@@ -4,7 +4,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
 
-public class EventTestUtls {
+public class EventTestUtils {
 
     public static final String MESSAGE_CONTENT =
             "{\"jsonrpc\": \"2.0\", \"method\": \"|testcase|test|update\", \"params\": {\"value\": 42}}";

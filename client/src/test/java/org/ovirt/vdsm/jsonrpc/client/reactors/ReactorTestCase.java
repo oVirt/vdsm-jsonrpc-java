@@ -19,10 +19,12 @@ import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
 import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
+import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
 
 public class ReactorTestCase {
 
@@ -91,6 +93,7 @@ public class ReactorTestCase {
     }
 
     @Test
+    @Category(TimeDepending.class)
     public void testNotConnectedRetry() throws InterruptedException, TimeoutException, ClientConnectionException,
             ExecutionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);

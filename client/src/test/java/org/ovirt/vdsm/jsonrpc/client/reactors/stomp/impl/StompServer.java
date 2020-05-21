@@ -138,40 +138,33 @@ public class StompServer implements Reciever {
                     return new Message().error().withHeader(HEADER_MESSAGE, "Missing required header");
                 }
 
-                if (transactionHeader == null) {
-                    return new Message().error().withHeader(HEADER_MESSAGE, "Missing transaction");
-                }
                 try (LockWrapper wrapper = new LockWrapper(lock)) {
                     transactions.remove(transactionHeader);
                 }
                 return null;
             });
-            put(Command.COMMIT.toString(), new TestCommandExecutor() {
+            put(Command.COMMIT.toString(), (message, key) -> {
+                Map<String, String> headers = message.getHeaders();
+                String transactionHeader = headers.get(HEADER_TRANSACTION);
 
-                @Override
-                public Message execute(Message message, SelectionKey key) {
-                    Map<String, String> headers = message.getHeaders();
-                    String transactionHeader = headers.get(HEADER_TRANSACTION);
-
-                    if (JsonUtils.isEmpty(transactionHeader)) {
-                        return new Message().error().withHeader(HEADER_MESSAGE, "Missing required header");
-                    }
-                    try (LockWrapper wrapper = new LockWrapper(lock)) {
-                        List<Message> messages = transactions.remove(transactionHeader);
-                        if (messages == null) {
-                            return new Message().error().withHeader(HEADER_MESSAGE, "No transaction with provided id");
-                        }
-                        for (Message msg : messages) {
-                            String destHeader = msg.getHeaders().get(HEADER_DESTINATION);
-                            List<TestServerListener> list = listeners.get(destHeader);
-                            for (TestServerListener listener : list) {
-                                listener.update(new Message().message()
-                                        .withContent(msg.getContent()).withHeaders(msg.getHeaders()));
-                            }
-                        }
-                    }
-                    return null;
+                if (JsonUtils.isEmpty(transactionHeader)) {
+                    return new Message().error().withHeader(HEADER_MESSAGE, "Missing required header");
                 }
+                try (LockWrapper wrapper = new LockWrapper(lock)) {
+                    List<Message> messages = transactions.remove(transactionHeader);
+                    if (messages == null) {
+                        return new Message().error().withHeader(HEADER_MESSAGE, "No transaction with provided id");
+                    }
+                    for (Message msg : messages) {
+                        String destHeader = msg.getHeaders().get(HEADER_DESTINATION);
+                        List<TestServerListener> list = listeners.get(destHeader);
+                        for (TestServerListener listener : list) {
+                            listener.update(new Message().message()
+                                    .withContent(msg.getContent()).withHeaders(msg.getHeaders()));
+                        }
+                    }
+                }
+                return null;
             });
         }
     };

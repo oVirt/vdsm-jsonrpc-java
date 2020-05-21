@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.ovirt.vdsm.jsonrpc.client.TestJsonRpcClient.jsonFromString;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
 
@@ -20,9 +19,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
@@ -33,6 +36,7 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
 import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
 
 public class JsonRpcClientConnectivityTestCase {
 
@@ -143,6 +147,7 @@ public class JsonRpcClientConnectivityTestCase {
 
     @SuppressWarnings("unchecked")
     @Test
+    @Category(TimeDepending.class)
     public void testBulkRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
             ClientConnectionException {
         // Given
@@ -192,5 +197,14 @@ public class JsonRpcClientConnectivityTestCase {
             Map<String, Object> status = (Map<String, Object>) error.get("status");
             assertEquals(5022, status.get("code"));
         });
+    }
+
+    private static JsonNode jsonFromString(String str) {
+        final JsonFactory jsonFactory = new ObjectMapper().getJsonFactory();
+        try (JsonParser jp = jsonFactory.createJsonParser(str)) {
+            return jp.readValueAsTree();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

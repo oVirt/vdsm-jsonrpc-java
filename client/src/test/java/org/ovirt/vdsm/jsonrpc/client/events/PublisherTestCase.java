@@ -7,7 +7,7 @@ import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtls.createPublisher;
+import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.createPublisher;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;

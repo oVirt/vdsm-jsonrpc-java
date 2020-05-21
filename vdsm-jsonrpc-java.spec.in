@@ -21,8 +21,7 @@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
 %global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
-%global	_mvn_opts -Pno-test
-
+%global	_mvn_opts -Ptimedependant-tests-disabled
 Summary:	JsonRpc java client (%{name}) for oVirt
 Name:		@PACKAGE_NAME@
 Version:	@PACKAGE_RPM_VERSION@
