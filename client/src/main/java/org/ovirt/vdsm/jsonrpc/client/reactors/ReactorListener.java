@@ -49,9 +49,10 @@ public final class ReactorListener {
             serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT, this);
             serverSocketChannel.bind(address);
         } catch (ClosedChannelException e) {
-            throw new RuntimeException(
-                    "Connection closed unexpectedly");
+            log.debug("Connection closed unexpectedly", e);
+            throw new RuntimeException("Connection closed unexpectedly", e);
         } catch (IOException e) {
+            log.debug("Error while setting up channel", e);
             try {
                 serverSocketChannel.close();
             } catch (IOException e1) {
