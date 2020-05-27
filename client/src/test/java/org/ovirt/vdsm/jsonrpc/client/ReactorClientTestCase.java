@@ -101,7 +101,7 @@ public class ReactorClientTestCase {
         }
 
         public boolean isHalf() {
-            return this.half;
+            return this.half.get();
         }
     }
 

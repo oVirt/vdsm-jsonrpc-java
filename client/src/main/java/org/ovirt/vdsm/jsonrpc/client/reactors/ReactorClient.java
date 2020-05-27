@@ -53,7 +53,7 @@ public abstract class ReactorClient {
     private final AtomicLong lastIncomingHeartbeat = new AtomicLong(0);
     private final AtomicLong lastOutgoingHeartbeat = new AtomicLong(0);
     private final AtomicBoolean closing = new AtomicBoolean();
-    protected boolean half = true;
+    protected final AtomicBoolean half = new AtomicBoolean(true);
     protected volatile ClientPolicy policy = new DefaultConnectionRetryPolicy();
     protected final List<MessageListener> eventListeners;
     protected final Reactor reactor;
@@ -220,9 +220,9 @@ public abstract class ReactorClient {
         if (incoming < LIMIT) {
             incoming = LIMIT;
         }
-        if (!this.isInInit() && getHeartbeatTime() > incoming && this.half) {
+
+        if (!this.isInInit() && getHeartbeatTime() > incoming && this.half.compareAndSet(true, false)) {
             log.info("No interaction with host '{}' for {} ms.", getHostname(), incoming);
-            this.half = false;
         }
         if (!this.isInInit() && this.policy.isIncomingHeartbeat() && this.isIncomingHeartbeatExceeded()) {
             String msg = String.format("Connection timeout for host '%s', last response arrived %s ms ago.",
@@ -242,7 +242,7 @@ public abstract class ReactorClient {
     }
 
     protected void updateLastIncomingHeartbeat() {
-        this.half = true;
+        this.half.set(true);
         this.lastIncomingHeartbeat.set(this.now());
     }
 
