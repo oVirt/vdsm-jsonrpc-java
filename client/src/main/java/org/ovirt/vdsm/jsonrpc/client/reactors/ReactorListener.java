@@ -7,7 +7,6 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
@@ -21,7 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class ReactorListener {
     public interface EventListener extends java.util.EventListener {
-        void onAcccept(ReactorClient client);
+        void onAccept(ReactorClient client);
     }
 
     private static Logger log = LoggerFactory.getLogger(ReactorListener.class);
@@ -82,7 +81,7 @@ public final class ReactorListener {
             client = this.reactor.createConnectedClient(this.reactor,
                     this.selector, address.getHostName(),
                     address.getPort(), conn);
-            this.eventListener.onAcccept(client);
+            this.eventListener.onAccept(client);
         } catch (IOException | ClientConnectionException e) {
             log.error("Not able to accept connection", e);
         }

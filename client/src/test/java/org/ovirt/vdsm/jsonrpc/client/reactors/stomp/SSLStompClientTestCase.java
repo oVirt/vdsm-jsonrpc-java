@@ -100,7 +100,7 @@ public class SSLStompClientTestCase {
                 this.listeningReactor.createListener(HOSTNAME, port, new EventListener() {
 
                     @Override
-                    public void onAcccept(final ReactorClient client) {
+                    public void onAccept(final ReactorClient client) {
                         client.addEventListener(new MessageListener() {
                             @Override
                             public void onMessageReceived(byte[] message) {
@@ -150,7 +150,7 @@ public class SSLStompClientTestCase {
                 this.listeningReactor.createListener(HOSTNAME, 0, new EventListener() {
 
                     @Override
-                    public void onAcccept(final ReactorClient client) {
+                    public void onAccept(final ReactorClient client) {
                         client.addEventListener(new MessageListener() {
                             @Override
                             public void onMessageReceived(byte[] message) {
