@@ -12,13 +12,13 @@ import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.createPublishe
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.ovirt.vdsm.jsonrpc.client.EventDecomposer;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
-import org.reactivestreams.Subscription;
 
 public class PublisherTestCase {
 
@@ -40,12 +40,12 @@ public class PublisherTestCase {
 
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|*|uuid");
-        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<Flow.Subscription> captor = ArgumentCaptor.forClass(Flow.Subscription.class);
 
         publisher.subscribe(subscriber);
         verify(subscriber).onSubscribe(captor.capture());
 
-        Subscription subscription = captor.getValue();
+        Flow.Subscription subscription = captor.getValue();
 
         publisher.process(event);
         verify(subscriber, timeout(500).times(0)).onNext(map);
@@ -73,12 +73,12 @@ public class PublisherTestCase {
 
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|test|*");
-        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<Flow.Subscription> captor = ArgumentCaptor.forClass(Flow.Subscription.class);
 
         publisher.subscribe(subscriber);
         verify(subscriber).onSubscribe(captor.capture());
 
-        Subscription subscription = captor.getValue();
+        Flow.Subscription subscription = captor.getValue();
 
         subscription.request(10);
 
@@ -105,12 +105,12 @@ public class PublisherTestCase {
 
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|test|*");
-        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<Flow.Subscription> captor = ArgumentCaptor.forClass(Flow.Subscription.class);
 
         publisher.subscribe(subscriber);
         verify(subscriber).onSubscribe(captor.capture());
 
-        Subscription subscription = captor.getValue();
+        Flow.Subscription subscription = captor.getValue();
         subscription.cancel();
 
         publisher.process(event);
@@ -135,7 +135,7 @@ public class PublisherTestCase {
 
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|*|uuid");
-        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<Flow.Subscription> captor = ArgumentCaptor.forClass(Flow.Subscription.class);
 
         publisher.subscribe(subscriber);
         verify(subscriber).onSubscribe(captor.capture());
@@ -173,7 +173,7 @@ public class PublisherTestCase {
 
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|*|uuid");
-        ArgumentCaptor<Subscription> captor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<Flow.Subscription> captor = ArgumentCaptor.forClass(Flow.Subscription.class);
 
         publisher.subscribe(subscriber);
         verify(subscriber).onSubscribe(captor.capture());

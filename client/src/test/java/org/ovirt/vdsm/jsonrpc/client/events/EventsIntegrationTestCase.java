@@ -10,6 +10,7 @@ import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEF
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Flow;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +27,6 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
 import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
-import org.reactivestreams.Subscription;
 
 public class EventsIntegrationTestCase {
 
@@ -76,10 +76,10 @@ public class EventsIntegrationTestCase {
         EventPublisher publisher = worker.getPublisher();
         EventSubscriber subscriber = new EventSubscriber("*|*|*|update") {
 
-            private Subscription subscription;
+            private Flow.Subscription subscription;
 
             @Override
-            public void onSubscribe(Subscription subscription) {
+            public void onSubscribe(Flow.Subscription subscription) {
                 this.subscription = subscription;
                 this.subscription.request(1);
             }

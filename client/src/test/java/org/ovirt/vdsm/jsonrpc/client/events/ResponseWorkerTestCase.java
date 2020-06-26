@@ -10,6 +10,7 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.buildErrorResponse;
 
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -21,7 +22,6 @@ import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
-import org.reactivestreams.Subscription;
 
 public class ResponseWorkerTestCase {
 
@@ -48,10 +48,10 @@ public class ResponseWorkerTestCase {
 
         EventSubscriber subscriber = new EventSubscriber("*|virt|VM_status|*") {
 
-            private Subscription subscription;
+            private Flow.Subscription subscription;
 
             @Override
-            public void onSubscribe(Subscription s) {
+            public void onSubscribe(Flow.Subscription s) {
                 this.subscription = s;
                 this.subscription.request(1);
             }
@@ -82,10 +82,10 @@ public class ResponseWorkerTestCase {
 
         EventSubscriber subscriber = new EventSubscriber("localhost|virt|VM_status|*") {
 
-            private Subscription subscription;
+            private Flow.Subscription subscription;
 
             @Override
-            public void onSubscribe(Subscription s) {
+            public void onSubscribe(Flow.Subscription s) {
                 this.subscription = s;
                 this.subscription.request(1);
             }

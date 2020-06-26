@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -15,7 +16,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
 import org.ovirt.vdsm.jsonrpc.testutils.Performance;
-import org.reactivestreams.Subscription;
 
 public class EventsThroughputTestCase {
     private static final JsonRpcEvent EVENT = JsonRpcEvent.fromByteArray(MESSAGE_CONTENT.getBytes());
@@ -24,7 +24,7 @@ public class EventsThroughputTestCase {
     private AtomicInteger counter = new AtomicInteger();
     private EventPublisher publisher;
     private List<Integer> result = new ArrayList<>();
-    private Subscription subscription;
+    private Flow.Subscription subscription;
 
     @Before
     public void setup() {
@@ -35,7 +35,7 @@ public class EventsThroughputTestCase {
         EventSubscriber subscriber = new EventSubscriber(subscriptionId) {
 
             @Override
-            public void onSubscribe(Subscription sub) {
+            public void onSubscribe(Flow.Subscription sub) {
                 subscription = sub;
                 subscription.request(10);
             }

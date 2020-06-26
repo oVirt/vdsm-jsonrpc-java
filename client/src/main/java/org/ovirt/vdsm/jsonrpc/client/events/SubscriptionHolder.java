@@ -9,10 +9,11 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.IntUnaryOperator;
+import java.util.function.LongUnaryOperator;
 import java.util.stream.Collectors;
 
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
@@ -24,7 +25,7 @@ import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
  *
  */
 public class SubscriptionHolder {
-    public static final IntUnaryOperator DECREMENT_ONLY_POSITIVE = currentValue -> {
+    public static final LongUnaryOperator DECREMENT_ONLY_POSITIVE = currentValue -> {
         if (currentValue > 0) {
             return currentValue - 1;
         }
@@ -32,7 +33,7 @@ public class SubscriptionHolder {
     };
     private EventSubscriber subscriber;
     private Deque<JsonRpcEvent> events = new ConcurrentLinkedDeque<>();
-    private volatile AtomicInteger count;
+    private volatile AtomicLong count;
     private String[] parsedId;
     private List<String> filteredId;
     private Lock lock = new ReentrantLock();
@@ -46,7 +47,7 @@ public class SubscriptionHolder {
      * @param count
      *            Represent current number of events requested by subscriber.
      */
-    public SubscriptionHolder(EventSubscriber subscriber, AtomicInteger count) {
+    public SubscriptionHolder(EventSubscriber subscriber, AtomicLong count) {
         this.subscriber = subscriber;
         this.count = count;
         this.parsedId = parse(getId());

@@ -7,17 +7,17 @@ import static org.ovirt.vdsm.jsonrpc.client.events.EventTestUtils.createPublishe
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.reactivestreams.Subscription;
 
 public class EventsPublishTestCase {
     private AtomicInteger counter = new AtomicInteger();
     private EventPublisher publisher;
-    private Subscription subscription;
+    private Flow.Subscription subscription;
     private int value;
 
     @Before
@@ -29,7 +29,7 @@ public class EventsPublishTestCase {
         EventSubscriber subscriber = new EventSubscriber(subscriptionId) {
 
             @Override
-            public void onSubscribe(Subscription sub) {
+            public void onSubscribe(Flow.Subscription sub) {
                 subscription = sub;
                 subscription.request(10);
             }

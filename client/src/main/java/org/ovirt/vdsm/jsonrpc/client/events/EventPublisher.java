@@ -6,26 +6,27 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Flow;
+import java.util.concurrent.Flow.Publisher;
+import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.EventDecomposer;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Jsonrpc implementation of {@link Publisher}
  *
  */
-public class EventPublisher implements Publisher<Map<String, Object>, EventSubscriber> {
+public class EventPublisher implements Flow.Publisher<Map<String, Object>> {
 
     private static Logger log = LoggerFactory.getLogger(EventPublisher.class);
 
@@ -69,16 +70,16 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
     /*
      * (non-Javadoc)
      *
-     * @see org.reactivestreams.Publisher#subscribe(org.reactivestreams.Subscriber)
+     * @see java.util.concurrent.Flow.Publisher#subscribe(java.util.concurrent.Flow.Subscriber)
      */
     @Override
-    public void subscribe(final EventSubscriber subscriber) {
-        final AtomicInteger count = new AtomicInteger();
-        final SubscriptionHolder holder = new SubscriptionHolder(subscriber, count);
-        Subscription subscription = new Subscription() {
+    public void subscribe(Subscriber<? super Map<String, Object>> subscriber) {
+        final AtomicLong count = new AtomicLong();
+        final SubscriptionHolder holder = new SubscriptionHolder((EventSubscriber) subscriber, count);
+        Flow.Subscription subscription = new Flow.Subscription() {
 
             @Override
-            public void request(int n) {
+            public void request(long n) {
                 count.addAndGet(n);
                 process(holder);
             }
@@ -93,7 +94,6 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
         this.matcher.add(holder);
     }
 
-    @Override
     public void publish(final String subscriptionId, final Map<String, Object> params) throws IOException {
         process(JsonRpcEvent.fromMethodAndParams(subscriptionId, params));
     }
@@ -184,4 +184,5 @@ public class EventPublisher implements Publisher<Map<String, Object>, EventSubsc
     public void close() {
         this.executorService.shutdown();
     }
+
 }
