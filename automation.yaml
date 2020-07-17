@@ -3,6 +3,6 @@ stage:
     - build-artifacts
     - check-patch
 arch: x86_64
-distro: [fc30, el8]
+distro: el8
 release_branches:
     master: ovirt-master
