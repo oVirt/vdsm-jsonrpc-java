@@ -111,6 +111,14 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Wed Aug 5 2020 Artur Socha <asocha@redhat.com> 1.5.5
+- Automation: drop fc30 support
+- Jackson upgrade to 2.10.3
+- ReactorClient: half flag made atomic
+- More verbose logging in ReactorListener
+- Unit tests enabled for CI
+- Unit tests hardening & refactoring
+
 * Thu Feb 13 2020 Artur Socha <asocha@redhat.com> 1.5.4
 - No more plain java build for release process
 - fix for incorrect dependencies generation by xmvn
