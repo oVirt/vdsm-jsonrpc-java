@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
@@ -23,6 +24,12 @@ import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
  *
  */
 public class SubscriptionHolder {
+    public static final IntUnaryOperator DECREMENT_ONLY_POSITIVE = currentValue -> {
+        if (currentValue > 0) {
+            return currentValue - 1;
+        }
+        return 0;
+    };
     private EventSubscriber subscriber;
     private Deque<JsonRpcEvent> events = new ConcurrentLinkedDeque<>();
     private volatile AtomicInteger count;
@@ -87,7 +94,7 @@ public class SubscriptionHolder {
      */
     public JsonRpcEvent canProcessMore() {
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
-            if (!this.events.isEmpty() && this.count.getAndDecrement() > 0) {
+            if (!this.events.isEmpty() && this.count.getAndUpdate(DECREMENT_ONLY_POSITIVE) > 0) {
                 return this.events.removeLast();
             }
             return null;
