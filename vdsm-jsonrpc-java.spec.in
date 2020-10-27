@@ -111,6 +111,9 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Tue Oct 27 2020 Artur Socha <asocha@redhant.com> 1.5.7
+- Fix for negative subscription count, correct bug-url
+
 * Tue Oct 27 2020 Artur Socha <asocha@redhant.com> 1.5.6
 - Fix for negative subscription count
 
