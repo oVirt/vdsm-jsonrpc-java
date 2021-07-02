@@ -46,6 +46,7 @@ public final class ReactorListener {
 
         try {
             serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT, this);
+            log.debug("Binding to {}", address);
             serverSocketChannel.bind(address);
         } catch (ClosedChannelException e) {
             log.debug("Connection closed unexpectedly", e);

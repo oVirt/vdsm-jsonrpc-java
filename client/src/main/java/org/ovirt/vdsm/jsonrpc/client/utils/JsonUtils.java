@@ -4,7 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
-import java.util.Date;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class JsonUtils {
-    public static final Charset UTF8 = Charset.forName("UTF-8");
+    public static final Charset UTF8 = StandardCharsets.UTF_8;
     private static final double GRACE_PERIOD = 0.5;
     public static final String ALL = "*";
     public static final String SUBSCRIPTION_ALL = "*|*|*|*";
@@ -124,7 +125,7 @@ public class JsonUtils {
     }
 
     public static long getTimeout(int timeout, TimeUnit unit) {
-        return new Date().getTime() + TimeUnit.MILLISECONDS.convert(timeout, unit);
+        return Clock.systemUTC().millis() + TimeUnit.MILLISECONDS.convert(timeout, unit);
     }
 
     public static void logException(Logger logger, String message, Throwable throwable) {
@@ -137,7 +138,7 @@ public class JsonUtils {
 
     public static String[] parse(String id) {
         String[] ids = id.split("\\|");
-        if (ids.length == 0 || ids.length != 4) {
+        if (ids.length != 4) {
             throw new IllegalArgumentException("wrong id format");
         }
         return ids;

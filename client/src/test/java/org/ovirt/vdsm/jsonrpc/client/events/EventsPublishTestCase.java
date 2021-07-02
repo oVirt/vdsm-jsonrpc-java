@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class EventsPublishTestCase {
-    private AtomicInteger counter = new AtomicInteger();
+    private final AtomicInteger counter = new AtomicInteger();
     private EventPublisher publisher;
     private Flow.Subscription subscription;
     private int value;

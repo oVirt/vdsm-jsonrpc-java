@@ -25,19 +25,19 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
 import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReactorTestCase {
-
+    private static final Logger log = LoggerFactory.getLogger(ReactorTestCase.class);
     private static final int TIMEOUT_SEC = 6;
     private static final String HOSTNAME = "127.0.0.1";
     private static final String DATA = "Hello World!";
     private Reactor reactorForListener;
     private Reactor reactorForClient;
-    private int port;
 
     @Before
     public void setUp() throws Exception {
-        port = FreePorts.findFreePort();
         this.reactorForListener = new StompReactor();
         this.reactorForClient = new StompReactor();
     }
@@ -53,6 +53,7 @@ public class ReactorTestCase {
             ExecutionException, TimeoutException,
             ClientConnectionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
+        int port = FreePorts.findFreePort();
         final Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME,
                 port,
                 client -> client.addEventListener(message -> {
@@ -88,8 +89,12 @@ public class ReactorTestCase {
         assertNotNull(message);
         assertArrayEquals(buff.array(), message);
 
-        client.close();
-        listener.close();
+        final Future<Void> clientCloseTask = client.close();
+        closeWithTimeout(clientCloseTask);
+        assertTrue(clientCloseTask.isDone());
+        final Future<Void> listenerCloseTask = listener.close();
+        closeWithTimeout(listenerCloseTask);
+        assertTrue(listenerCloseTask.isDone());
     }
 
     @Test
@@ -97,6 +102,7 @@ public class ReactorTestCase {
     public void testNotConnectedRetry() throws InterruptedException, TimeoutException, ClientConnectionException,
             ExecutionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
+        int port = FreePorts.findFreePort();
         Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME,
                 port,
                 client -> client.addEventListener(message -> {
@@ -119,9 +125,15 @@ public class ReactorTestCase {
 
         client.addEventListener(queue::add);
         client.connect();
-        listener.close();
+        final Future<Void> closeTask = listener.close();
+        closeWithTimeout(closeTask);
+        assertTrue(closeTask.isDone());
 
         futureListener = this.reactorForListener.createListener(HOSTNAME,
+                //fixme this port is occasionally not free. Most likely it is because of combination of
+                // 1. its state in TIME_WAIT where it enters after listener.close()
+                // 2. and delayed TCP packets(fragments) more details at [1]
+                // [1] https://vincent.bernat.ch/en/blog/2014-tcp-time-wait-state-linux
                 port,
                 _client -> _client.addEventListener(message -> {
                     try {
@@ -142,5 +154,10 @@ public class ReactorTestCase {
 
         assertNotNull(message);
         assertArrayEquals(buff.array(), message);
+        closeWithTimeout(listener.close());
+    }
+
+    private static void closeWithTimeout(Future<Void> closeTask) throws ExecutionException, InterruptedException, TimeoutException {
+        closeTask.get(2, TimeUnit.SECONDS);
     }
 }

@@ -12,6 +12,7 @@ import java.security.GeneralSecurityException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.SSLContext;
 
@@ -51,7 +52,7 @@ public class HeartbeatTestCase {
 
             testHeartbeat(listeningReactor, sendingReactor, incoming, outgoing);
         } catch (GeneralSecurityException | IOException | ClientConnectionException | InterruptedException
-                | ExecutionException e) {
+                | ExecutionException | TimeoutException e ) {
             fail();
         } finally {
             if (provider != null) {
@@ -77,7 +78,8 @@ public class HeartbeatTestCase {
             sendingReactor = new StompReactor();
 
             this.testHeartbeat(listeningReactor, sendingReactor, incoming, outgoing);
-        } catch (IOException | ClientConnectionException | InterruptedException | ExecutionException e) {
+        } catch (IOException | ClientConnectionException | InterruptedException | ExecutionException
+                | TimeoutException e) {
             fail();
         } finally {
             if (sendingReactor != null) {
@@ -93,11 +95,11 @@ public class HeartbeatTestCase {
 
     private void testHeartbeat(Reactor listeningReactor, Reactor sendingReactor, int incoming, int outgoing)
             throws ClientConnectionException,
-            InterruptedException, ExecutionException {
+            InterruptedException, ExecutionException, TimeoutException {
         Future<ReactorListener> futureListener =
                 listeningReactor.createListener(HOSTNAME, 0, client -> listeningClient = client);
 
-        ReactorListener listener = futureListener.get();
+        ReactorListener listener = futureListener.get(30,TimeUnit.SECONDS);
         assertNotNull(listener);
 
         ReactorClient client = sendingReactor.createClient(HOSTNAME, listener.getPort());
@@ -111,8 +113,8 @@ public class HeartbeatTestCase {
         assertTrue(client.isOpen());
         assertTrue(this.listeningClient.isOpen());
 
-        client.close();
-        listener.close();
+        client.close().get(2, TimeUnit.SECONDS);
+        listener.close().get(2, TimeUnit.SECONDS);
         this.listeningClient = null;
     }
 

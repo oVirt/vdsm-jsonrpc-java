@@ -18,7 +18,7 @@ public class StompInternalTest {
     @Test
     public void testConnection() throws IOException, InterruptedException {
         final CountDownLatch messages = new CountDownLatch(1);
-        StompServer server = new StompServer(HOSTNAME, 0);
+        StompServer server = new StompServer(HOSTNAME);
         StompClient clientSubscriber = new StompClient(HOSTNAME, server.getPort());
         clientSubscriber.subscribe("/queue/a", new Listener() {
 
@@ -47,7 +47,7 @@ public class StompInternalTest {
     }
 
     @Test
-    public void testMultipeSubs() throws IOException, InterruptedException {
+    public void testMultipleSubs() throws IOException, InterruptedException {
         final CountDownLatch messages = new CountDownLatch(3);
         Listener listener = new Listener() {
 
@@ -61,7 +61,7 @@ public class StompInternalTest {
                 fail();
             }
         };
-        StompServer server = new StompServer(HOSTNAME, 0);
+        StompServer server = new StompServer(HOSTNAME);
         StompClient clientSubscriber1 = new StompClient(HOSTNAME, server.getPort());
         StompClient clientSubscriber2 = new StompClient(HOSTNAME, server.getPort());
         StompClient clientSubscriber3 = new StompClient(HOSTNAME, server.getPort());
@@ -103,7 +103,7 @@ public class StompInternalTest {
                 fail();
             }
         };
-        StompServer server = new StompServer(HOSTNAME, 0);
+        StompServer server = new StompServer(HOSTNAME);
         StompClient clientSubscriber1 = new StompClient(HOSTNAME, server.getPort());
         StompClient clientSubscriber2 = new StompClient(HOSTNAME, server.getPort());
         StompClient clientSubscriber3 = new StompClient(HOSTNAME, server.getPort());

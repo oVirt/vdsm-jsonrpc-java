@@ -68,7 +68,7 @@ public class MatcherTestCase {
     public void testOperationSubscription() {
         SubscriptionHolder holder = mock(SubscriptionHolder.class);
         when(holder.getId()).thenReturn("*|*|test|*");
-        when(holder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test")));
+        when(holder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test")));
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -105,15 +105,15 @@ public class MatcherTestCase {
     public void testUidAndOperationAndComponentSubscription() {
         SubscriptionHolder holder = mock(SubscriptionHolder.class);
         when(holder.getId()).thenReturn("*|*|test|uuid");
-        when(holder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test", "uuid")));
+        when(holder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test", "uuid")));
 
         SubscriptionHolder differentHolder = mock(SubscriptionHolder.class);
         when(differentHolder.getId()).thenReturn("*|*|test|*");
-        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test")));
+        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test")));
 
         SubscriptionHolder thirdHolder = mock(SubscriptionHolder.class);
         when(thirdHolder.getId()).thenReturn("*|testcase|*|*");
-        when(thirdHolder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("testcase")));
+        when(thirdHolder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("testcase")));
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -131,15 +131,15 @@ public class MatcherTestCase {
     public void testOperationAndComponentSubscription() {
         SubscriptionHolder holder = mock(SubscriptionHolder.class);
         when(holder.getId()).thenReturn("*|*|*|uuid");
-        when(holder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("uuid")));
+        when(holder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("uuid")));
 
         SubscriptionHolder differentHolder = mock(SubscriptionHolder.class);
         when(differentHolder.getId()).thenReturn("*|*|test|*");
-        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("test")));
+        when(differentHolder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("test")));
 
         SubscriptionHolder thirdHolder = mock(SubscriptionHolder.class);
         when(thirdHolder.getId()).thenReturn("*|testcase|test2|*");
-        when(thirdHolder.getFilteredId()).thenReturn(new ArrayList<String>(Arrays.asList("testcase", "test2")));
+        when(thirdHolder.getFilteredId()).thenReturn(new ArrayList<>(Arrays.asList("testcase", "test2")));
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -163,11 +163,11 @@ public class MatcherTestCase {
     public void testMixedSubscription() {
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|testcase|*|uuid");
-        SubscriptionHolder holder = new SubscriptionHolder(subscriber, new AtomicLong());
+        SubscriptionHolder holder = new SubscriptionHolder(subscriber);
 
         EventSubscriber differentSubscriber = mock(EventSubscriber.class);
         when(differentSubscriber.getSubscriptionId()).thenReturn("*|testcase|test|*");
-        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber, new AtomicLong());
+        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber);
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -184,11 +184,11 @@ public class MatcherTestCase {
     public void testReceiverSubscription() {
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("localhost|testcase|*|uuid");
-        SubscriptionHolder holder = new SubscriptionHolder(subscriber, new AtomicLong());
+        SubscriptionHolder holder = new SubscriptionHolder(subscriber);
 
         EventSubscriber differentSubscriber = mock(EventSubscriber.class);
         when(differentSubscriber.getSubscriptionId()).thenReturn("remote|*|test|*");
-        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber, new AtomicLong());
+        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber);
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -211,11 +211,11 @@ public class MatcherTestCase {
     public void testReceiverWithComponentAndOperationSubscription() {
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("localhost|*|VM_status|*");
-        SubscriptionHolder holder = new SubscriptionHolder(subscriber, new AtomicLong());
+        SubscriptionHolder holder = new SubscriptionHolder(subscriber);
 
         EventSubscriber differentSubscriber = mock(EventSubscriber.class);
         when(differentSubscriber.getSubscriptionId()).thenReturn("remote|*|VM_status|*");
-        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber, new AtomicLong());
+        SubscriptionHolder differentHolder = new SubscriptionHolder(differentSubscriber);
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -238,7 +238,7 @@ public class MatcherTestCase {
     public void testReceiverOnlySubscription() {
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("localhost|*|VM.list|*");
-        SubscriptionHolder holder = new SubscriptionHolder(subscriber, new AtomicLong());
+        SubscriptionHolder holder = new SubscriptionHolder(subscriber);
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);
@@ -254,11 +254,11 @@ public class MatcherTestCase {
     public void testVmMigrationSubscription() {
         EventSubscriber subscriber = mock(EventSubscriber.class);
         when(subscriber.getSubscriptionId()).thenReturn("*|*|VM_migration_status|*");
-        SubscriptionHolder holder = new SubscriptionHolder(subscriber, new AtomicLong());
+        SubscriptionHolder holder = new SubscriptionHolder(subscriber);
 
         EventSubscriber subscriber2 = mock(EventSubscriber.class);
         when(subscriber2.getSubscriptionId()).thenReturn("10.35.0.96|*|VM_status|*");
-        SubscriptionHolder holder2 = new SubscriptionHolder(subscriber2, new AtomicLong());
+        SubscriptionHolder holder2 = new SubscriptionHolder(subscriber2);
 
         SubscriptionMatcher matcher = new SubscriptionMatcher();
         matcher.add(holder);

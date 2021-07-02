@@ -41,7 +41,7 @@ public class StompClientTestCase {
     }
 
     @Test
-    public void testHelloWrold() throws InterruptedException, ExecutionException, ClientConnectionException {
+    public void testHelloWorld() throws InterruptedException, ExecutionException, ClientConnectionException {
         testEchoMessage(generateRandomMessage(16));
     }
 

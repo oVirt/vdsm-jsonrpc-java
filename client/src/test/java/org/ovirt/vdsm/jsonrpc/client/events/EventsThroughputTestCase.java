@@ -21,9 +21,9 @@ public class EventsThroughputTestCase {
     private static final JsonRpcEvent EVENT = JsonRpcEvent.fromByteArray(MESSAGE_CONTENT.getBytes());
     private static final int TIMEOUT = 10000;
     private static final int TIMES = 10;
-    private AtomicInteger counter = new AtomicInteger();
+    private final AtomicInteger counter = new AtomicInteger();
     private EventPublisher publisher;
-    private List<Integer> result = new ArrayList<>();
+    private final List<Integer> result = new ArrayList<>();
     private Flow.Subscription subscription;
 
     @Before

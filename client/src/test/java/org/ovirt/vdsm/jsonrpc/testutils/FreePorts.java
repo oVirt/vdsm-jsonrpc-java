@@ -8,25 +8,18 @@ import java.net.ServerSocket;
  */
 public class FreePorts {
 
-    public static synchronized int findFreePort() {
+    public static int findFreePort() {
         ServerSocket socket = null;
         try {
             socket = new ServerSocket(0);
             socket.setReuseAddress(true);
-            int port = socket.getLocalPort();
-            try {
-                socket.close();
-                Thread.sleep(500);
-            } catch (IOException | InterruptedException ignored) {
-            }
-            return port;
+            return socket.getLocalPort();
         } catch (IOException ignored) {
         } finally {
             if (socket != null) {
                 try {
                     socket.close();
-                    Thread.sleep(500);
-                } catch (IOException | InterruptedException ignored) {
+                } catch (IOException ignored) {
                 }
             }
         }

@@ -197,15 +197,13 @@ public class Message {
     }
 
     public static Message parse(byte[] array) throws ClientConnectionException {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Raw message received: {}", new String(array, UTF8));
+        }
         String[] message = new String(array, UTF8).split("\n");
 
         if (message.length == 0) {
             return null;
-        }
-
-        // let us see stomp control messages
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(new String(array, UTF8));
         }
 
         int line = 0;
@@ -237,7 +235,7 @@ public class Message {
         while (currentLine.length() > 0) {
             int ind = currentLine.indexOf(':');
             String key = currentLine.substring(0, ind);
-            String value = currentLine.substring(ind + 1, currentLine.length());
+            String value = currentLine.substring(ind + 1);
             headers.put(key, value);
             currentLine = message[++line];
         }

@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.IntUnaryOperator;
 import java.util.function.LongUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -31,12 +30,12 @@ public class SubscriptionHolder {
         }
         return 0;
     };
-    private EventSubscriber subscriber;
-    private Deque<JsonRpcEvent> events = new ConcurrentLinkedDeque<>();
-    private volatile AtomicLong count;
-    private String[] parsedId;
+    private final EventSubscriber subscriber;
+    private final Deque<JsonRpcEvent> events;
+    private final AtomicLong count;
+    private final String[] parsedId;
     private List<String> filteredId;
-    private Lock lock = new ReentrantLock();
+    private final Lock lock;
 
     /**
      * Creates a holder which subscriber instance and count and it prepares subscription id representation for event
@@ -44,13 +43,13 @@ public class SubscriptionHolder {
      *
      * @param subscriber
      *            Instance of @link {@link EventSubscriber}.
-     * @param count
-     *            Represent current number of events requested by subscriber.
      */
-    public SubscriptionHolder(EventSubscriber subscriber, AtomicLong count) {
+    public SubscriptionHolder(EventSubscriber subscriber) {
         this.subscriber = subscriber;
-        this.count = count;
+        this.count = new AtomicLong();;
+        this.events = new ConcurrentLinkedDeque<>();
         this.parsedId = parse(getId());
+        this.lock = new ReentrantLock();
         filter();
     }
 
@@ -80,7 +79,7 @@ public class SubscriptionHolder {
      * @return Filtered subscription id which do not contains all filter '*'
      */
     public List<String> getFilteredId() {
-        return new ArrayList<String>(this.filteredId);
+        return new ArrayList<>(this.filteredId);
     }
 
     /**
@@ -94,7 +93,7 @@ public class SubscriptionHolder {
      * @return An event for processing if there is any and if subscriber is willing to process more events.
      */
     public JsonRpcEvent canProcessMore() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (!this.events.isEmpty() && this.count.getAndUpdate(DECREMENT_ONLY_POSITIVE) > 0) {
                 return this.events.removeLast();
             }
@@ -110,7 +109,7 @@ public class SubscriptionHolder {
      *            An event to be queued.
      */
     public void putEvent(JsonRpcEvent event) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             event.setArrivalTime(System.nanoTime());
             this.events.addFirst(event);
         }
@@ -122,7 +121,7 @@ public class SubscriptionHolder {
      * Used by test case to count number of events
      */
     public int getNumberOfEvents() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             return this.events.size();
         }
     }
@@ -132,7 +131,7 @@ public class SubscriptionHolder {
      * @param eventTimeoutInHours the timeout after which the events are purged from the queue.
      */
     public void purgeOldEventsIfNotConsumed(int eventTimeoutInHours) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             long threshold = System.nanoTime() - TimeUnit.HOURS.toNanos(eventTimeoutInHours);
             // remove the last element if the element was created before threshold
             while (!this.events.isEmpty() && this.events.peekLast().getArrivalTime() < threshold) {
@@ -153,8 +152,12 @@ public class SubscriptionHolder {
      * Clean event queue.
      */
     public void clean() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             this.events.clear();
         }
+    }
+
+    public long incrementCount(long n){
+        return count.addAndGet(n);
     }
 }

@@ -4,17 +4,12 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.UTF8;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.mapValues;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcClient;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
@@ -24,6 +19,13 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonFactoryBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /**
  * <code>ResponseWorker</code> is responsible to process responses for all the {@link JsonRpcClient} and it is produced
  * by {@link ReactorFactory}.
@@ -31,13 +33,15 @@ import org.slf4j.LoggerFactory;
  */
 public final class ResponseWorker extends Thread {
     private final LinkedBlockingQueue<MessageContext> queue;
-    private static final ObjectMapper MAPPER = new ObjectMapper();
-    private ResponseTracker tracker;
-    private EventPublisher publisher;
-    private static Logger log = LoggerFactory.getLogger(ResponseWorker.class);
+    private static final ObjectMapper MAPPER;
+    private final ResponseTracker tracker;
+    private final EventPublisher publisher;
+    private static final Logger log = LoggerFactory.getLogger(ResponseWorker.class);
     static {
-        MAPPER.getFactory().configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false);
-        MAPPER.getFactory().configure(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES, false);
+        MAPPER = new ObjectMapper(new JsonFactoryBuilder()
+                .configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false)
+                .configure(JsonFactory.Feature.CANONICALIZE_FIELD_NAMES, false)
+                .build());
     }
 
     public ResponseWorker(int parallelism, int eventTimeoutInHours) {
@@ -60,7 +64,7 @@ public final class ResponseWorker extends Thread {
         start();
     }
 
-    class ResponseForkJoinWorkerThread extends ForkJoinWorkerThread {
+    static class ResponseForkJoinWorkerThread extends ForkJoinWorkerThread {
 
         protected ResponseForkJoinWorkerThread(ForkJoinPool pool) {
             super(pool);
@@ -81,32 +85,28 @@ public final class ResponseWorker extends Thread {
     }
 
     public void run() {
-        MessageContext context = null;
+        AtomicReference<MessageContext> contextRef = new AtomicReference<>();
         while (true) {
             try {
-                context = this.queue.take();
-                if (context.getClient() == null) {
+                contextRef.set(this.queue.take());
+                if (contextRef.get().getClient() == null) {
                     break;
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("Message received: " + new String(context.getMessage(), UTF8));
+                    log.debug("Message received: " + new String(contextRef.get().getMessage(), UTF8));
                 }
-                JsonNode rootNode = MAPPER.readTree(context.getMessage());
+                JsonNode rootNode = MAPPER.readTree(contextRef.get().getMessage());
                 if (!rootNode.isArray()) {
-                    processIncomingObject(context.getClient(), rootNode);
+                    processIncomingObject(contextRef.get().getClient(), rootNode);
                 } else {
-                    final Iterator<JsonNode> iter = rootNode.elements();
-                    while (iter.hasNext()) {
-                        final JsonNode node = iter.next();
-                        processIncomingObject(context.getClient(), node);
-                    }
+                    rootNode.elements()
+                            .forEachRemaining(node -> processIncomingObject(contextRef.get().getClient(), node));
                 }
             } catch (Exception e) {
                 log.warn("Exception thrown during message processing");
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                continue;
             }
         }
     }
@@ -146,7 +146,7 @@ public final class ResponseWorker extends Thread {
         try {
             client.processResponse(JsonRpcResponse.fromJsonNode(node));
         } catch (IllegalArgumentException e) {
-            logException(log, "Recieved response is not correct", e);
+            logException(log, "Received response is not correct", e);
         }
     }
 

@@ -97,7 +97,7 @@ public class ResponseWorkerTestCase {
 
             @Override
             public void onError(Throwable t) {
-                assertTrue(ClientConnectionException.class.isInstance(t));
+                assertTrue(t instanceof ClientConnectionException);
                 assertEquals("Heartbeat exceeded", t.getMessage());
                 latch.countDown();
             }

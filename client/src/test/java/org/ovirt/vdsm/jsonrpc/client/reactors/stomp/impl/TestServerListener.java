@@ -4,8 +4,8 @@ import java.nio.channels.SelectionKey;
 
 public class TestServerListener {
 
-    private SelectionKey key;
-    private TestSender sender;
+    private final SelectionKey key;
+    private final TestSender sender;
 
     public TestServerListener(SelectionKey key, TestSender sender) {
         this.key = key;

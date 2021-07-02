@@ -41,29 +41,34 @@ import com.fasterxml.jackson.databind.node.NullNode;
  *
  */
 public class ResponseTracker implements Runnable {
-    private static Logger log = LoggerFactory.getLogger(ResponseTracker.class);
+    private static final Logger log = LoggerFactory.getLogger(ResponseTracker.class);
     private static final int TRACKING_TIMEOUT = 500;
-    private AtomicBoolean isTracking;
-    private final ConcurrentMap<JsonNode, JsonRpcCall> runningCalls = new ConcurrentHashMap<>();
-    private ConcurrentMap<JsonNode, ResponseTracking> map = new ConcurrentHashMap<>();
-    private ConcurrentMap<String, List<JsonNode>> hostToId = new ConcurrentHashMap<>();
-    private Queue<JsonNode> queue = new ConcurrentLinkedQueue<>();
-    private final Lock lock = new ReentrantLock();
+    private final AtomicBoolean isTracking;
+    private final ConcurrentMap<JsonNode, JsonRpcCall> runningCalls;
+    private final ConcurrentMap<JsonNode, ResponseTracking> map;
+    private final ConcurrentMap<String, List<JsonNode>> hostToId;
+    private final Queue<JsonNode> queue;
+    private final Lock lock;
     private ScheduledExecutorService executorService;
 
     public ResponseTracker() {
         this.isTracking = new AtomicBoolean(true);
+        this.runningCalls = new ConcurrentHashMap<>();
+        this.map = new ConcurrentHashMap<>();
+        this.hostToId = new ConcurrentHashMap<>();
+        this.queue = new ConcurrentLinkedQueue<>();
+        this.lock = new ReentrantLock();
     }
 
     private void removeRequestFromTracking(JsonNode id) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             this.queue.remove(id);
             ResponseTracking tracking = this.map.remove(id);
             if (tracking != null && tracking.getClient() != null) {
-                List<JsonNode> nodes = this.hostToId.get(tracking.getClient().getClientId());
-                if (nodes != null) {
+                this.hostToId.computeIfPresent(tracking.getClient().getClientId(), (clientId, nodes) -> {
                     nodes.remove(id);
-                }
+                    return nodes;
+                });
             }
         }
     }
@@ -82,7 +87,7 @@ public class ResponseTracker implements Runnable {
     public void registerTrackingRequest(JsonRpcRequest req, ResponseTracking tracking) {
         JsonNode id = req.getId();
         List<JsonNode> nodes = new CopyOnWriteArrayList<>();
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             this.map.put(id, tracking);
 
             if(!this.queue.contains(id)){
@@ -159,7 +164,7 @@ public class ResponseTracker implements Runnable {
     }
 
     private void remove(ResponseTracking tracking, JsonNode id, JsonRpcResponse response) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             JsonRpcCall call = this.runningCalls.remove(id);
             boolean callbackNotified = false;
             if (call != null) {
@@ -192,7 +197,7 @@ public class ResponseTracker implements Runnable {
         String message = (String) map.get("message");
         JsonRpcResponse errorResponse = buildErrorResponse(null, 5022, message);
 
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (ReactorClient.CLIENT_CLOSED.equals(message)) {
                 removeNodes(this.hostToId.get(code), errorResponse);
             } else {
@@ -205,7 +210,7 @@ public class ResponseTracker implements Runnable {
 
     private void removeNodes(List<JsonNode> nodes, JsonRpcResponse errorResponse) {
         nodes.stream()
-                .filter(id -> !NullNode.class.isInstance(id))
+                .filter(id -> !(id instanceof NullNode))
                 .forEach(id -> remove(this.map.get(id), id, errorResponse));
     }
 

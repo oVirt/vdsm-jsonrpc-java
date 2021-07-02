@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.junit.Before;
 import org.junit.Test;
-import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
@@ -29,7 +28,7 @@ public class ResponseTrackerTestCase {
 
     private ReactorClient client;
 
-    private JsonNode idNode = new TextNode(UUID.randomUUID().toString());
+    private final JsonNode idNode = new TextNode(UUID.randomUUID().toString());
 
     @Before
     public void setup() {

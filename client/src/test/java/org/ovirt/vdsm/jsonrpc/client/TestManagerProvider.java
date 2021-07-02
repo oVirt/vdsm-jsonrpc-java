@@ -17,9 +17,9 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.ManagerProvider;
 
 public class TestManagerProvider extends ManagerProvider {
 
-    private InputStream keyStream;
-    private InputStream trustStream;
-    private String pass;
+    private final InputStream keyStream;
+    private final InputStream trustStream;
+    private final String pass;
 
     public TestManagerProvider(InputStream keyStream, InputStream trustStream, String pass) {
         this.keyStream = keyStream;

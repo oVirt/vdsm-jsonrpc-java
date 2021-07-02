@@ -14,9 +14,11 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.reduceGracePeriod;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -46,18 +48,18 @@ public abstract class StompCommonClient extends ReactorClient {
     }
 
     public void send(byte[] message) {
+        logMessageInTrace(message);
         outbox.addFirst(ByteBuffer.wrap(message));
-        updateOps(message);
+        updateOps();
     }
 
-    private void updateOps(byte[] message) {
-        if (LOG.isDebugEnabled()) {
-            try {
-                LOG.debug("Message sent: " + Message.parse(message));
-            } catch (ClientConnectionException ignored) {
-            }
+    private void logMessageInTrace(byte[] message) {
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Message received: {}", new String(message, StandardCharsets.UTF_8));
         }
+    }
 
+    private void updateOps() {
         final ReactorClient client = this;
         scheduleTask(() -> {
             client.updateInterestedOps();
@@ -66,8 +68,9 @@ public abstract class StompCommonClient extends ReactorClient {
     }
 
     public void sendNow(byte[] message) {
+        logMessageInTrace(message);
         outbox.addLast(ByteBuffer.wrap(message));
-        updateOps(message);
+        updateOps();
     }
 
     void processMessage(Message message) {
@@ -123,7 +126,7 @@ public abstract class StompCommonClient extends ReactorClient {
                 String[] messages = new String(headerBuffer.array(), UTF8).split(END_OF_MESSAGE);
                 for (String msg : messages) {
                     Message mesg = Message.parse((msg + END_OF_MESSAGE).getBytes(UTF8));
-                    int contLen = mesg.getContentLength();
+                    int contLen = Objects.requireNonNull(mesg).getContentLength();
                     if (contLen != -1 && contLen != mesg.getContent().length - 1) {
                         this.message = mesg;
                         break;

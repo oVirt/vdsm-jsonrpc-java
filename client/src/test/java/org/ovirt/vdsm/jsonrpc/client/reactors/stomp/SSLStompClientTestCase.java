@@ -28,9 +28,7 @@ import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.TestManagerProvider;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient.MessageListener;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
-import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener.EventListener;
 
 public class SSLStompClientTestCase {
     private static final String CHAR_LIST = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
@@ -60,14 +58,12 @@ public class SSLStompClientTestCase {
     }
 
     @Test
-    public void testShortMessage() throws InterruptedException, ExecutionException, ClientConnectionException,
-            IllegalAccessException {
+    public void testShortMessage() throws InterruptedException, ExecutionException, ClientConnectionException {
         testEcho(generateRandomMessage(16));
     }
 
     @Test
-    public void testLongMessage() throws InterruptedException, ExecutionException, ClientConnectionException,
-            IllegalAccessException {
+    public void testLongMessage() throws InterruptedException, ExecutionException, ClientConnectionException {
         testEcho(generateRandomMessage(524288));
     }
 
@@ -79,13 +75,7 @@ public class SSLStompClientTestCase {
         ReactorClient client = this.sendingReactor.createClient(HOSTNAME, port);
         client.setClientPolicy(
                 new StompClientPolicy(180000, 0, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        client.addEventListener(new ReactorClient.MessageListener() {
-
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(message);
-            }
-        });
+        client.addEventListener(queue::add);
         try {
             client.connect();
             fail();
@@ -97,22 +87,13 @@ public class SSLStompClientTestCase {
         queue.poll(TIMEOUT_SEC, TimeUnit.SECONDS);
 
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, port, new EventListener() {
-
-                    @Override
-                    public void onAccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                this.listeningReactor.createListener(HOSTNAME, port, client1 -> client1.addEventListener(msg -> {
+                    try {
+                        client1.sendMessage(msg);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);
@@ -128,7 +109,7 @@ public class SSLStompClientTestCase {
 
     public static String generateRandomMessage(int length) {
         Random random = new Random();
-        StringBuffer randStr = new StringBuffer();
+        StringBuilder randStr = new StringBuilder();
         for (int i = 0; i < length; i++) {
             int number = random.nextInt(CHAR_LIST.length());
             char ch = CHAR_LIST.charAt(number);
@@ -143,26 +124,16 @@ public class SSLStompClientTestCase {
                 PASSWORD);
     }
 
-    public void testEcho(String message) throws InterruptedException, ExecutionException, ClientConnectionException,
-            IllegalAccessException {
+    public void testEcho(String message) throws InterruptedException, ExecutionException, ClientConnectionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(5);
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, 0, new EventListener() {
-
-                    @Override
-                    public void onAccept(final ReactorClient client) {
-                        client.addEventListener(new MessageListener() {
-                            @Override
-                            public void onMessageReceived(byte[] message) {
-                                try {
-                                    client.sendMessage(message);
-                                } catch (ClientConnectionException e) {
-                                    fail();
-                                }
-                            }
-                        });
+                this.listeningReactor.createListener(HOSTNAME, 0, client -> client.addEventListener(msg -> {
+                    try {
+                        client.sendMessage(msg);
+                    } catch (ClientConnectionException e) {
+                        fail();
                     }
-                });
+                }));
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);
@@ -170,13 +141,7 @@ public class SSLStompClientTestCase {
         ReactorClient client = this.sendingReactor.createClient(HOSTNAME, listener.getPort());
         client.setClientPolicy(
                 new StompClientPolicy(180000, 0, 1000000, DEFAULT_REQUEST_QUEUE, DEFAULT_RESPONSE_QUEUE));
-        client.addEventListener(new ReactorClient.MessageListener() {
-
-            @Override
-            public void onMessageReceived(byte[] message) {
-                queue.add(message);
-            }
-        });
+        client.addEventListener(queue::add);
         client.connect();
 
         client.sendMessage(message.getBytes());

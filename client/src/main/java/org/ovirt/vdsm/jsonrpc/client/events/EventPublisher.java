@@ -28,16 +28,17 @@ import org.slf4j.LoggerFactory;
  */
 public class EventPublisher implements Flow.Publisher<Map<String, Object>> {
 
-    private static Logger log = LoggerFactory.getLogger(EventPublisher.class);
+    private static final Logger log = LoggerFactory.getLogger(EventPublisher.class);
 
-    private ExecutorService executorService;
-    private ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-    private SubscriptionMatcher matcher;
-    private EventDecomposer decomposer;
-    private int eventTimeoutInHours;
+    private final ExecutorService executorService;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final SubscriptionMatcher matcher;
+    private final EventDecomposer decomposer;
+    private final int eventTimeoutInHours;
 
     public EventPublisher(ExecutorService executorService, int eventTimeoutInHours) {
         this.executorService = executorService;
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(1);
         this.matcher = new SubscriptionMatcher();
         this.decomposer = new EventDecomposer();
         this.eventTimeoutInHours = eventTimeoutInHours;
@@ -74,13 +75,12 @@ public class EventPublisher implements Flow.Publisher<Map<String, Object>> {
      */
     @Override
     public void subscribe(Subscriber<? super Map<String, Object>> subscriber) {
-        final AtomicLong count = new AtomicLong();
-        final SubscriptionHolder holder = new SubscriptionHolder((EventSubscriber) subscriber, count);
+        final SubscriptionHolder holder = new SubscriptionHolder((EventSubscriber) subscriber);
         Flow.Subscription subscription = new Flow.Subscription() {
 
             @Override
             public void request(long n) {
-                count.addAndGet(n);
+                holder.incrementCount(n);
                 process(holder);
             }
 
@@ -139,8 +139,8 @@ public class EventPublisher implements Flow.Publisher<Map<String, Object>> {
      */
     class EventCallable implements Callable<Void> {
 
-        private SubscriptionHolder holder;
-        private EventDecomposer decomposer;
+        private final SubscriptionHolder holder;
+        private final EventDecomposer decomposer;
 
         /**
          * @param holder

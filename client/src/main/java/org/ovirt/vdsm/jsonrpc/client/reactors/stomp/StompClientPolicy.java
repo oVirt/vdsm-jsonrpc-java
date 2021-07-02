@@ -6,8 +6,8 @@ import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 
 public class StompClientPolicy extends ClientPolicy {
 
-    private String requestQueue;
-    private String responseQueue;
+    private final String requestQueue;
+    private final String responseQueue;
     private String eventQueue;
 
     public StompClientPolicy(int retryTimeOut,

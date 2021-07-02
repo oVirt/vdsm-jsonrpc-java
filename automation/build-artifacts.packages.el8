@@ -9,9 +9,11 @@ java-11-openjdk-devel
 maven
 javapackages-tools
 javassist
+log4j12
 maven-javadoc
 maven-local
 maven-source-plugin
 slf4j
+slf4j-log4j12
 yum-utils
 vim-minimal

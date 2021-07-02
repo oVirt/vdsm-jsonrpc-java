@@ -17,20 +17,23 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
+import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 
 
 public class StompTransport extends Thread implements TestSender {
-    private String host;
+    private final String host;
     private int port;
-    private ByteBuffer readBuffer = ByteBuffer.allocateDirect(4096);
-    private AbstractSelector selector;
-    private boolean isRunning = true;
-    private Reciever reciever;
+    private final ByteBuffer readBuffer;
+    private final AbstractSelector selector;
+    private boolean isRunning;
+    private final Reciever reciever;
 
     public StompTransport(String host, Reciever reciever) throws IOException {
         this.selector = SelectorProvider.provider().openSelector();
         this.reciever = reciever;
         this.host = host;
+        this.isRunning = true;
+        this.readBuffer = ByteBuffer.allocateDirect(4096);
     }
 
     public SelectionKey connect(int port) throws IOException {
@@ -53,7 +56,7 @@ public class StompTransport extends Thread implements TestSender {
         serverSocketChannel.configureBlocking(false);
 
         serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT, new ConcurrentLinkedDeque<>());
-        serverSocketChannel.bind(new InetSocketAddress(this.host, 0));
+        serverSocketChannel.bind(new InetSocketAddress(this.host, FreePorts.findFreePort()));
 
         this.port = serverSocketChannel.socket().getLocalPort();
 

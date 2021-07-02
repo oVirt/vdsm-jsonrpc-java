@@ -24,18 +24,22 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.Command;
 import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
 
 public class StompClient implements Reciever {
-    private StompTransport transport;
-    private CountDownLatch connected = new CountDownLatch(1);
-    private CountDownLatch disconnected = new CountDownLatch(1);
-    private SelectionKey key;
-    private Map<String, Listener> listener = new ConcurrentHashMap<>();
-    private Map<String, String> destinations = new ConcurrentHashMap<>();
+    private final StompTransport transport;
+    private final CountDownLatch connected;
+    private final CountDownLatch disconnected;
+    private final SelectionKey key;
+    private final Map<String, Listener> listener;
+    private final Map<String, String> destinations;
     private String id;
     private String transactionId;
-    private Lock lock = new ReentrantLock();
+    private final Lock lock;
 
     public StompClient(String host, int port) throws IOException {
         this.transport = new StompTransport(host, this);
+        this.connected = new CountDownLatch(1);
+        this.disconnected = new CountDownLatch(1);
+        this.listener = new ConcurrentHashMap<>();
+        this.destinations = new ConcurrentHashMap<>();
         this.key = this.transport.connect(port);
         this.transport.send(new Message().connect().withHeader(HEADER_ACCEPT, "1.2").build(), key);
         try {
@@ -44,10 +48,11 @@ public class StompClient implements Reciever {
         } catch (InterruptedException e) {
             throw new IOException("Not connected");
         }
+        this.lock = new ReentrantLock();
     }
 
     public void subscribe(String channel, Listener listener) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (this.listener.get(channel) != null) {
                 throw new IllegalArgumentException("Already subscribed to channel: " + channel);
             }
@@ -62,7 +67,7 @@ public class StompClient implements Reciever {
 
     public void send(String content, String channel) {
         Map<String, String> headers = new HashMap<>();
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (!isEmpty(this.transactionId)) {
                 headers.put(HEADER_TRANSACTION, this.transactionId);
             }
@@ -73,7 +78,7 @@ public class StompClient implements Reciever {
     }
 
     public void unsubscribe(String channel) {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             String id = this.destinations.remove(channel);
             this.listener.remove(channel);
             this.transport.send(new Message().unsubscribe().withHeader(HEADER_ID, id).build(), key);
@@ -81,7 +86,7 @@ public class StompClient implements Reciever {
 
     }
 
-    public void disconnect() throws IOException {
+    public void disconnect() {
         id = UUID.randomUUID().toString();
         this.transport.send(new Message().disconnect().withHeader(HEADER_RECEIPT, id).build(), key);
         try {
@@ -99,7 +104,7 @@ public class StompClient implements Reciever {
     }
 
     public void begin() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (!isEmpty(this.transactionId)) {
                 throw new IllegalStateException("Already opened transaction");
             }
@@ -109,21 +114,11 @@ public class StompClient implements Reciever {
     }
 
     public void commit() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (isEmpty(this.transactionId)) {
                 throw new IllegalStateException("No running transaction");
             }
             this.transport.send(new Message().commit().withHeader(HEADER_TRANSACTION, this.transactionId).build(), key);
-            this.transactionId = null;
-        }
-    }
-
-    public void abort() {
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
-            if (isEmpty(this.transactionId)) {
-                throw new IllegalStateException("No running transaction");
-            }
-            this.transport.send(new Message().abort().withHeader(HEADER_TRANSACTION, this.transactionId).build(), key);
             this.transactionId = null;
         }
     }
@@ -133,7 +128,7 @@ public class StompClient implements Reciever {
         if (Command.CONNECTED.toString().equals(message.getCommand())) {
             this.connected.countDown();
         } else if (Command.MESSAGE.toString().equals(message.getCommand())) {
-            try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+            try (LockWrapper ignored = new LockWrapper(this.lock)) {
                 String destination = message.getHeaders().get(HEADER_DESTINATION);
                 Listener listener = this.listener.get(destination);
                 if (listener != null) {

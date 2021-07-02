@@ -126,7 +126,7 @@ public class JsonRpcClientConnectivityTestCase {
         final JsonRpcRequest req = new JsonRpcRequest("echo", params, id);
 
         Future<JsonRpcResponse> future = jsonClient.call(req);
-        listener.close();
+        listener.close().get(2, TimeUnit.SECONDS);
         clientReactor.close();
         listenerReactor.close();
         client.close();

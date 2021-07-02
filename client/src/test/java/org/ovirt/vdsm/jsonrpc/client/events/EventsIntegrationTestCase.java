@@ -122,7 +122,7 @@ public class EventsIntegrationTestCase {
         worker.close();
     }
 
-    class EventGenerator implements Runnable {
+    static class EventGenerator implements Runnable {
         private static final long TIMEOUT = 50;
         private final ReactorClient client;
         private int counter;

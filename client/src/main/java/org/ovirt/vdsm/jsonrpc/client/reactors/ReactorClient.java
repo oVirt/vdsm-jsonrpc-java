@@ -46,7 +46,7 @@ public abstract class ReactorClient {
     public static final String CLIENT_CLOSED = "Client close";
     public static final int BUFFER_SIZE = 1024;
     private static final int LIMIT = 20000;
-    private static Logger log = LoggerFactory.getLogger(ReactorClient.class);
+    private static final Logger log = LoggerFactory.getLogger(ReactorClient.class);
     private final String hostname;
     private final int port;
     private final Lock lock;
@@ -94,7 +94,7 @@ public abstract class ReactorClient {
         if (isOpen()) {
             return;
         }
-        try (LockWrapper wrapper = new LockWrapper(this.lock)) {
+        try (LockWrapper ignored = new LockWrapper(this.lock)) {
             if (isOpen() && isInInit()) {
                 getPostConnectCallback().await(policy.getRetryTimeOut(), policy.getTimeUnit());
             }
@@ -103,13 +103,14 @@ public abstract class ReactorClient {
             }
             final FutureTask<SocketChannel> task = scheduleTask(new Retryable<>(() -> {
                 InetAddress address = InetAddress.getByName(hostname);
-                log.info("Connecting to " + address);
+                log.info("Connecting to {}", address);
 
                 final InetSocketAddress addr = new InetSocketAddress(address, port);
                 final SocketChannel socketChannel = SocketChannel.open();
 
                 socketChannel.configureBlocking(false);
                 socketChannel.connect(addr);
+                log.info("Connected to {}:{}", address, port);
 
                 return socketChannel;
             }, this.policy));

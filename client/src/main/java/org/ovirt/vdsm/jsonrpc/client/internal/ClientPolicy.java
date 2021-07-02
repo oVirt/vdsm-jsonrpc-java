@@ -1,7 +1,6 @@
 package org.ovirt.vdsm.jsonrpc.client.internal;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -14,12 +13,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ClientPolicy {
     private final int retryTimeOut;
     private final int retryNumber;
+    private final List<Class<? extends Exception>> exceptions;
+    private final AtomicBoolean isIncomingHeartbeat;
+    private final AtomicBoolean isOutgoingHeartbeat;
     private volatile int incomingHeartbeat;
     private volatile int outgoingHeartbeat;
-    private List<Class<? extends Exception>> exceptions;
+
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
-    private AtomicBoolean isIncomingHeartbeat = new AtomicBoolean();
-    private AtomicBoolean isOutgoingHeartbeat = new AtomicBoolean();
     private String identifier;
 
     /**
@@ -41,13 +41,15 @@ public class ClientPolicy {
             int outgoingHeartbeat, List<Class<? extends Exception>> retryableExceptions) {
         this.retryNumber = retryNumber;
         this.retryTimeOut = retryTimeOut;
+        this.isIncomingHeartbeat = new AtomicBoolean();
+        this.isOutgoingHeartbeat = new AtomicBoolean();
         setIncomingHeartbeat(incomingHeartbeat);
         setOutgoingHeartbeat(outgoingHeartbeat);
         this.exceptions = Collections.unmodifiableList(retryableExceptions);
     }
 
     public ClientPolicy(int retryTimeOut, int retryNumber, int incomingHeartbeat) {
-        this(retryTimeOut, retryNumber, incomingHeartbeat, 0, new ArrayList<Class<? extends Exception>>());
+        this(retryTimeOut, retryNumber, incomingHeartbeat, 0, new ArrayList<>());
     }
 
     public ClientPolicy(int retryTimeOut, int retryNumber, int incomingHeartbeat, int outgoingHeartbeat) {
@@ -55,7 +57,7 @@ public class ClientPolicy {
                 retryNumber,
                 incomingHeartbeat,
                 outgoingHeartbeat,
-                new ArrayList<Class<? extends Exception>>());
+                new ArrayList<>());
     }
 
     public ClientPolicy(int retryTimeOut,
@@ -66,7 +68,7 @@ public class ClientPolicy {
                 retryNumber,
                 incomingHeartbeat,
                 0,
-                new ArrayList<Class<? extends Exception>>(Arrays.asList(retryableException)));
+                new ArrayList<>(List.of(retryableException)));
     }
 
     public ClientPolicy(int retryTimeOut,
@@ -78,7 +80,7 @@ public class ClientPolicy {
                 retryNumber,
                 incomingHeartbeat,
                 outgoingHeartbeat,
-                new ArrayList<Class<? extends Exception>>(Arrays.asList(retryableException)));
+                new ArrayList<>(List.of(retryableException)));
     }
 
     public int getRetryTimeOut() {
@@ -99,20 +101,12 @@ public class ClientPolicy {
 
     public final void setOutgoingHeartbeat(int outgoingHeartbeat) {
         this.outgoingHeartbeat = outgoingHeartbeat;
-        if (outgoingHeartbeat != 0) {
-            this.isOutgoingHeartbeat.set(true);
-        } else {
-            this.isOutgoingHeartbeat.set(false);
-        }
+        this.isOutgoingHeartbeat.set(outgoingHeartbeat != 0);
     }
 
     public final void setIncomingHeartbeat(int incomingHeartbeat) {
         this.incomingHeartbeat = incomingHeartbeat;
-        if (incomingHeartbeat != 0) {
-            this.isIncomingHeartbeat.set(true);
-        } else {
-            this.isIncomingHeartbeat.set(false);
-        }
+        this.isIncomingHeartbeat.set(incomingHeartbeat != 0);
     }
 
     public List<Class<? extends Exception>> getExceptions() {
@@ -140,11 +134,7 @@ public class ClientPolicy {
     }
 
     public void setIncomingHeartbeat(boolean isHeartbeat) {
-        if (isHeartbeat && this.incomingHeartbeat != 0) {
-            this.isIncomingHeartbeat.set(isHeartbeat);
-            return;
-        }
-        this.isIncomingHeartbeat.set(false);
+        this.isIncomingHeartbeat.set(isHeartbeat && this.incomingHeartbeat != 0);
     }
 
     public boolean isOutgoingHeartbeat() {
@@ -152,11 +142,7 @@ public class ClientPolicy {
     }
 
     public void setOutgoingHeartbeat(boolean isHeartbeat) {
-        if (isHeartbeat && this.outgoingHeartbeat != 0) {
-            this.isOutgoingHeartbeat.set(isHeartbeat);
-            return;
-        }
-        this.isOutgoingHeartbeat.set(false);
+        this.isOutgoingHeartbeat.set(isHeartbeat && this.outgoingHeartbeat != 0);
     }
 
     @Override
