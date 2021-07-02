@@ -1,75 +1,83 @@
 package org.ovirt.vdsm.jsonrpc.client.internal;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.ovirt.vdsm.jsonrpc.client.BrokerCommandCallback;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
- * <code>Call</code> holds single response and uses {@link BatchCall}
- * as internal implementation to promote code reuse.
+ * <code>Call</code> holds single response
  *
  */
 public class Call implements Future<JsonRpcResponse>, JsonRpcCall {
 
-    private final BatchCall batchCall;
+    private final CountDownLatch latch;
+    private final JsonNode id;
+    private JsonRpcResponse response;
+    private BrokerCommandCallback callback;
 
     public Call(JsonRpcRequest req) {
-        this.batchCall = new BatchCall(Arrays.asList(req));
+        this.latch = new CountDownLatch(1);
+        this.id = req.getId();
     }
 
     public Call(JsonRpcRequest req, BrokerCommandCallback callback) {
-        this.batchCall = new BatchCall(Arrays.asList(req), callback);
+        this(req);
+        this.callback = callback;
     }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return this.batchCall.cancel(mayInterruptIfRunning);
+        return false;
     }
 
     @Override
     public void addResponse(JsonRpcResponse response) {
-        this.batchCall.addResponse(response);
-    }
-
-    private JsonRpcResponse extractResponse(List<JsonRpcResponse> list) {
-        return list.get(0);
+        if (this.response != null) {
+            return;
+        }
+        this.response = response;
+        latch.countDown();
     }
 
     public JsonNode getId() {
-        return this.batchCall.getId().get(0);
+        return this.id;
     }
 
     @Override
     public JsonRpcResponse get() throws InterruptedException {
-        return extractResponse(this.batchCall.get());
+        latch.await();
+        return this.response;
     }
 
     @Override
     public JsonRpcResponse get(long timeout, TimeUnit unit)
             throws InterruptedException,
             TimeoutException {
-        return extractResponse(this.batchCall.get(timeout, unit));
+        if (!latch.await(timeout, unit)) {
+            throw new TimeoutException();
+        }
+        return this.response;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.batchCall.isCancelled();
+        return false;
     }
 
     @Override
     public boolean isDone() {
-        return this.batchCall.isDone();
+        return this.latch.getCount() == 0;
     }
 
     @Override
     public BrokerCommandCallback getCallback() {
-        return batchCall.getCallback();
+        return this.callback;
     }
 }

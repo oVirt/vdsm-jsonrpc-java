@@ -6,6 +6,7 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.getTimeout;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.jsonToByteArray;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.mapValues;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -19,8 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.NullNode;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
@@ -31,6 +31,9 @@ import org.ovirt.vdsm.jsonrpc.client.utils.ResponseTracking;
 import org.ovirt.vdsm.jsonrpc.client.utils.retry.RetryContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 /**
  * Response tracker thread is responsible for tracking and retrying requests. For each connection there is single
@@ -72,9 +75,8 @@ public class ResponseTracker implements Runnable {
     }
 
     public JsonRpcCall removeCall(JsonNode id) {
-        JsonRpcCall call = this.runningCalls.remove(id);
         removeRequestFromTracking(id);
-        return call;
+        return this.runningCalls.remove(id);
     }
 
     public void registerTrackingRequest(JsonRpcRequest req, ResponseTracking tracking) {
@@ -82,7 +84,11 @@ public class ResponseTracker implements Runnable {
         List<JsonNode> nodes = new CopyOnWriteArrayList<>();
         try (LockWrapper wrapper = new LockWrapper(this.lock)) {
             this.map.put(id, tracking);
-            this.queue.add(id);
+
+            if(!this.queue.contains(id)){
+                this.queue.add(id);
+            }
+
             nodes.add(id);
             nodes = this.hostToId.putIfAbsent(tracking.getClient().getClientId(), nodes);
             if (nodes != null && !nodes.contains(id)) {
@@ -99,30 +105,39 @@ public class ResponseTracker implements Runnable {
                 loop();
             }
         } catch (InterruptedException e) {
-            log.warn("Tracker thread intrreupted");
+            log.warn("Tracker thread interrupted");
         }
     }
 
     protected void loop() {
         for (JsonNode id : queue) {
-            if (!this.runningCalls.containsKey(id)) {
+            if (this.runningCalls.computeIfAbsent(id, _id -> {
                 removeRequestFromTracking(id);
+                return null;
+            }) == null) {
                 continue;
             }
+
             ResponseTracking tracking = this.map.get(id);
             if (System.currentTimeMillis() >= tracking.getTimeout()) {
                 RetryContext context = tracking.getContext();
                 context.decreaseAttempts();
                 if (context.getNumberOfAttempts() <= 0) {
-                    handleFailure(tracking, id);
+                    handleFailure(tracking, id, "Too many attempts");
                     continue;
                 }
                 try {
-                    tracking.getClient().sendMessage(jsonToByteArray(tracking.getRequest().toJson()));
+                    final byte[] message = jsonToByteArray(tracking.getRequest().toJson());
+                    if (log.isDebugEnabled()){
+                        log.debug("Message to be sent {}", new String(message, StandardCharsets.UTF_8));
+                    }
+                    tracking.getClient().sendMessage(message);
                 } catch (ClientConnectionException e) {
-                    handleFailure(tracking, id);
+                    handleFailure(tracking, id, ExceptionUtils.getStackTrace(e));
                 }
                 tracking.setTimeout(getTimeout(context.getTimeout(), context.getTimeUnit()));
+            } else {
+                log.debug("Tracking timeout detected for request id {} ", id.asText());
             }
         }
     }
@@ -131,10 +146,11 @@ public class ResponseTracker implements Runnable {
         this.isTracking.set(false);
     }
 
-    private void handleFailure(ResponseTracking tracking, JsonNode id) {
+    private void handleFailure(ResponseTracking tracking, JsonNode id, String failureDetails) {
+        log.debug("Failure for request id {}. Details: {}", id.asText(), failureDetails);
         remove(tracking, id, buildFailedResponse(tracking.getRequest()));
         if (tracking.isResetConnection() && !tracking.getClient().isOpen()) {
-            tracking.getClient().disconnect("Vds timeout occured");
+            tracking.getClient().disconnect("Vds timeout occurred");
         }
     }
 

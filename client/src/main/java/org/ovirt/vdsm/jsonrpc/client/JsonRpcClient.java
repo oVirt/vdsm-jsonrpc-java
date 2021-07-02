@@ -4,7 +4,6 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.getTimeout;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.jsonToByteArray;
 import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.mapValues;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -12,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
-import org.ovirt.vdsm.jsonrpc.client.internal.BatchCall;
 import org.ovirt.vdsm.jsonrpc.client.internal.Call;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.JsonRpcCall;
@@ -130,35 +128,6 @@ public class JsonRpcClient {
                 new ResponseTracking(request, call, new RetryContext(policy), getTimeout(this.policy.getRetryTimeOut(),
                         this.policy.getTimeUnit()), this.client, !Objects.equals(request.getMethod(), "Host.ping"));
         this.tracker.registerTrackingRequest(request, tracking);
-    }
-
-    /**
-     * Sends requests in batch and returns {@link Future} representation of {@link JsonRpcResponse}.
-     *
-     * @param requests - <code>List</code> of requests to be sent.
-     * @return Future representation of the responses or <code>null</code> if sending failed.
-     * @throws ClientConnectionException is thrown when connection issues occur.
-     * @throws RequestAlreadySentException when the same requests is attempted to be send twice.
-     */
-    public Future<List<JsonRpcResponse>> batchCall(List<JsonRpcRequest> requests) throws ClientConnectionException {
-        final BatchCall call = new BatchCall(requests);
-        for (final JsonRpcRequest request : requests) {
-            this.tracker.registerCall(request, call);
-            retryCall(request, call);
-        }
-        try {
-            this.getClient().sendMessage(jsonToByteArray(requests));
-        } finally {
-            retryBatchCall(requests, call);
-        }
-        return call;
-    }
-
-    private void retryBatchCall(final List<JsonRpcRequest> requests, final BatchCall call)
-            throws ClientConnectionException {
-        for (JsonRpcRequest request : requests) {
-            retryCall(request, call);
-        }
     }
 
     public ReactorClient getClient() throws ClientConnectionException {

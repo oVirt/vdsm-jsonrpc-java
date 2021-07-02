@@ -4,6 +4,7 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.jsonToByteArray;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -134,5 +135,18 @@ public final class JsonRpcResponse {
             resultMap.put("password", "*****");
         }
         return resultMap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JsonRpcResponse that = (JsonRpcResponse) o;
+        return Objects.equals(result, that.result) && Objects.equals(error, that.error) && Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(result, error, id);
     }
 }

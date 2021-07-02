@@ -4,28 +4,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
 
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.ovirt.vdsm.jsonrpc.client.internal.ClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.internal.ResponseWorker;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
@@ -35,8 +27,10 @@ import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompClientPolicy;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompReactor;
 import org.ovirt.vdsm.jsonrpc.testutils.FreePorts;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonRpcClientConnectivityTestCase {
 
@@ -81,8 +75,6 @@ public class JsonRpcClientConnectivityTestCase {
         client.setClientPolicy(policy);
         JsonRpcClient jsonClient = worker.register(client);
         jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 0, 0));
-        JsonRpcRequest request = mock(JsonRpcRequest.class);
-        when(request.getId()).thenReturn(mock(JsonNode.class));
 
         assertNotNull(jsonClient);
         assertFalse(client.isOpen());
@@ -90,7 +82,11 @@ public class JsonRpcClientConnectivityTestCase {
         // When
         try {
             // When
-            jsonClient.call(request);
+            final JsonNode params = jsonFromString("{\"text\": \"running test: testDelayedConnect\"}");
+            final JsonNode id = jsonFromString("457");
+            final JsonRpcRequest req = new JsonRpcRequest("echo", params, id);
+
+            jsonClient.call(req);
 
             // Then
             fail();
@@ -121,21 +117,22 @@ public class JsonRpcClientConnectivityTestCase {
                 DEFAULT_RESPONSE_QUEUE));
         JsonRpcClient jsonClient = worker.register(client);
         jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 2, HEART_BEAT));
-        JsonRpcRequest request = mock(JsonRpcRequest.class);
-        when(request.getId()).thenReturn(mock(JsonNode.class));
-
         assertNotNull(jsonClient);
         assertFalse(client.isOpen());
 
         // When
-        Future<JsonRpcResponse> future = jsonClient.call(request);
+        final JsonNode params = jsonFromString("{\"text\": \"running test: testRetryMessageSend\"}");
+        final JsonNode id = jsonFromString("345");
+        final JsonRpcRequest req = new JsonRpcRequest("echo", params, id);
+
+        Future<JsonRpcResponse> future = jsonClient.call(req);
         listener.close();
         clientReactor.close();
         listenerReactor.close();
         client.close();
 
         // Then
-        JsonRpcResponse response = future.get();
+        JsonRpcResponse response = future.get(5, TimeUnit.SECONDS);
         assertNotNull(response);
 
         ResponseDecomposer decomposer = new ResponseDecomposer(response);
@@ -145,63 +142,9 @@ public class JsonRpcClientConnectivityTestCase {
         assertEquals(5022, status.get("code"));
     }
 
-    @SuppressWarnings("unchecked")
-    @Test
-    @Category(TimeDepending.class)
-    public void testBulkRetryMessageSend() throws InterruptedException, ExecutionException, TimeoutException,
-            ClientConnectionException {
-        // Given
-        Future<ReactorListener> futureListener = listenerReactor.createListener(HOSTNAME,
-                port,
-                client -> client.addEventListener(message -> {
-                    // if timing is wrong ignore the message
-                }));
-
-        ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
-
-        final ReactorClient client = clientReactor.createClient(HOSTNAME, port);
-        client.setClientPolicy(new StompClientPolicy(TIMEOUT,
-                CONNECTION_RETRY,
-                HEART_BEAT,
-                IOException.class,
-                DEFAULT_REQUEST_QUEUE,
-                DEFAULT_RESPONSE_QUEUE));
-        JsonRpcClient jsonClient = worker.register(client);
-        jsonClient.setRetryPolicy(new ClientPolicy(TIMEOUT, 1, HEART_BEAT));
-
-        final JsonNode params = jsonFromString("{\"text\": \"Hello World\"}");
-        final JsonNode id1 = jsonFromString("123");
-        final JsonNode id2 = jsonFromString("1234");
-        JsonRpcRequest[] requests = new JsonRpcRequest[] { new JsonRpcRequest("echo", params, id1),
-                new JsonRpcRequest("echo", params, id2) };
-
-        assertNotNull(jsonClient);
-        assertFalse(client.isOpen());
-
-        // When
-        Future<List<JsonRpcResponse>> future = jsonClient.batchCall(Arrays.asList(requests));
-        listener.close();
-        clientReactor.close();
-        listenerReactor.close();
-        client.close();
-
-        // Then
-        List<JsonRpcResponse> responses = future.get();
-        assertNotNull(responses);
-        assertEquals(2, responses.size());
-
-        responses.forEach(response -> {
-            ResponseDecomposer decomposer = new ResponseDecomposer(response);
-            Map<String, Object> error = decomposer.decomposeError();
-            assertNotNull(error);
-            Map<String, Object> status = (Map<String, Object>) error.get("status");
-            assertEquals(5022, status.get("code"));
-        });
-    }
-
     private static JsonNode jsonFromString(String str) {
-        final JsonFactory jsonFactory = new ObjectMapper().getJsonFactory();
-        try (JsonParser jp = jsonFactory.createJsonParser(str)) {
+        final JsonFactory jsonFactory = new ObjectMapper().getFactory();
+        try (JsonParser jp = jsonFactory.createParser(str)) {
             return jp.readValueAsTree();
         } catch (Exception e) {
             return null;
