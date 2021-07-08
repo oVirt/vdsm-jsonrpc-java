@@ -26,11 +26,11 @@ public class StompTransport extends Thread implements TestSender {
     private final ByteBuffer readBuffer;
     private final AbstractSelector selector;
     private boolean isRunning;
-    private final Reciever reciever;
+    private final Receiver receiver;
 
-    public StompTransport(String host, Reciever reciever) throws IOException {
+    public StompTransport(String host, Receiver receiver) throws IOException {
         this.selector = SelectorProvider.provider().openSelector();
-        this.reciever = reciever;
+        this.receiver = receiver;
         this.host = host;
         this.isRunning = true;
         this.readBuffer = ByteBuffer.allocateDirect(4096);
@@ -116,7 +116,7 @@ public class StompTransport extends Thread implements TestSender {
                                     Message msg = Message.parse(message.getBytes(UTF8));
                                     if (msg != null) {
                                         // ignore when heartbeat
-                                        this.reciever.recieve(msg, key);
+                                        this.receiver.receive(msg, key);
                                     }
                                 } catch (ClientConnectionException e) {
                                     fail();

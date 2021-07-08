@@ -25,7 +25,7 @@ import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StompServer implements Reciever {
+public class StompServer implements Receiver {
     public static final Logger log = LoggerFactory.getLogger(StompServer.class);
     private final StompTransport transport;
     private final Map<String, List<TestServerListener>> listeners;
@@ -52,7 +52,7 @@ public class StompServer implements Reciever {
     }
 
     @Override
-    public void recieve(Message message, SelectionKey key) {
+    public void receive(Message message, SelectionKey key) {
         String command = message.getCommand();
         TestCommandExecutor executor = this.commands.get(command);
         Message response = executor.execute(message, key);

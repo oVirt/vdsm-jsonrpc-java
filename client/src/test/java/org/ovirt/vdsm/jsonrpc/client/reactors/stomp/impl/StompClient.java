@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.ovirt.vdsm.jsonrpc.client.reactors.stomp.impl.Message.Command;
 import org.ovirt.vdsm.jsonrpc.client.utils.LockWrapper;
 
-public class StompClient implements Reciever {
+public class StompClient implements Receiver {
     private final StompTransport transport;
     private final CountDownLatch connected;
     private final CountDownLatch disconnected;
@@ -124,7 +124,7 @@ public class StompClient implements Reciever {
     }
 
     @Override
-    public void recieve(Message message, SelectionKey key) {
+    public void receive(Message message, SelectionKey key) {
         if (Command.CONNECTED.toString().equals(message.getCommand())) {
             this.connected.countDown();
         } else if (Command.MESSAGE.toString().equals(message.getCommand())) {
