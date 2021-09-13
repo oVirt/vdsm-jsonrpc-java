@@ -5,4 +5,4 @@ stage:
 arch: x86_64
 distro: el8
 release_branches:
-    master: ovirt-master
+    master: [ovirt-master, ovirt-4.4]
