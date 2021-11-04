@@ -21,4 +21,5 @@ maven-source-plugin
 maven-surefire-provider-junit
 mockito
 slf4j
+slf4j-jdk14
 vim-minimal

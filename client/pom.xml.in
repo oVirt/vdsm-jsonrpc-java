@@ -82,6 +82,12 @@
                         <perCoreThreadCount>true</perCoreThreadCount>
                         <forkCount>4</forkCount>
                         <reuseForks>true</reuseForks>
+                        <systemProperties>
+                        <property>
+                            <name>java.util.logging.config.file</name>
+                            <value>src/test/resources/logging.properties</value>
+                        </property>
+                        </systemProperties>
                     </configuration>
                 </plugin>
             </plugins>

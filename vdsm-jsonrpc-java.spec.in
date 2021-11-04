@@ -46,7 +46,7 @@ BuildRequires:	jackson-databind >= 2.9.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	javapackages-tools
 BuildRequires:	slf4j >= 1.7.0
-BuildRequires:	slf4j-log4j12 >= 1.7.0
+BuildRequires:	slf4j-jdk14 >= 1.7.0
 BuildRequires:	junit
 BuildRequires:	log4j12 >= 1.2.17
 BuildRequires:	mockito
