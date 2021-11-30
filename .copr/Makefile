@@ -1,7 +1,7 @@
 .PHONY: installdeps srpm
 
 installdeps:
-	dnf -y install git autoconf automake make maven gcc
+	dnf -y install git autoconf automake make maven gcc apache-commons-lang
 
 srpm: installdeps
 	$(eval SUFFIX=$(shell sh -c " echo '.$$(date -u +%Y%m%d%H%M%S).git$$(git rev-parse --short HEAD)'"))
