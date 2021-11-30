@@ -9,7 +9,6 @@ java-11-openjdk-devel
 maven
 javapackages-tools
 javassist
-log4j12
 maven-javadoc
 maven-local
 maven-source-plugin
