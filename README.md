@@ -14,12 +14,7 @@ and a **backup** of it is hosted on [GitHub:vdsm-jsonrpc-java](https://github.co
 
 Patches are welcome!
 
-Please submit patches to [gerrit.ovirt.org:vdsm-jsonrpc-java](https://gerrit.ovirt.org/#/admin/projects/vdsm-jsonrpc-java).
-If you are not familiar with the review process for Gerrit patches you can read about [Working with oVirt Gerrit](https://ovirt.org/develop/dev-process/working-with-gerrit.html)
-on the [oVirt](https://ovirt.org/) website.
-
-**NOTE**: We might not notice pull requests that you create on Github, because we only use Github for backups.
-
+Please submit patches to [GitHub:vdsm-jsonrpc-java](https://github.com/oVirt/vdsm-jsonrpc-java).
 
 ### Found a bug or documentation issue?
 To submit a bug or suggest an enhancement for vdsm-jsonrpc-java please use
