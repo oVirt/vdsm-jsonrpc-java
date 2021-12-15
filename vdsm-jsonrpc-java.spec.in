@@ -21,6 +21,7 @@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
 %global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
+%global	_mvn_opts -Pno-test
 
 Summary:	JsonRpc java client (%{name}) for oVirt
 Name:		@PACKAGE_NAME@
@@ -48,9 +49,8 @@ BuildRequires:	javapackages-tools
 BuildRequires:	slf4j >= 1.7.0
 BuildRequires:	slf4j-jdk14 >= 1.7.0
 BuildRequires:	junit
-BuildRequires:	log4j12 >= 1.2.17
 BuildRequires:	mockito
-BuildRequires:	maven >= 3.5.0
+BuildRequires:	maven >= 3.6.0
 BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-enforcer-plugin
 BuildRequires:	maven-jar-plugin
@@ -101,7 +101,7 @@ This package contains the API documentation for %{name}.
 # necessary because jdk 1.8 comes as default with xmvn
 export JAVA_HOME="%{_java_jdk_home}"
 
-%mvn_build
+%mvn_build -- %{?_mvn_opts}
 
 %install
 %mvn_install

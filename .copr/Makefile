@@ -15,7 +15,6 @@ installdeps:
 		jackson-databind \
 		java-11-openjdk-devel \
 		javapackages-tools \
-		javassist \
 		make \
 		maven-source-plugin \
 		maven \
