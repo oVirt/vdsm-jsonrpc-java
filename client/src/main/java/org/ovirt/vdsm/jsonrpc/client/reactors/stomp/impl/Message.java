@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcRequest;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcResponse;
@@ -30,7 +30,7 @@ public class Message {
         CONNECTED,
         ERROR,
         ACK,
-        MESSAGE;
+        MESSAGE
     }
 
     public static final String HEADER_DESTINATION = "destination";

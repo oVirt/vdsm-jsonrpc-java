@@ -16,6 +16,7 @@ import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.SSLContext;
 
+import org.junit.experimental.categories.Category;
 import org.junit.experimental.theories.DataPoint;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
@@ -25,6 +26,7 @@ import org.ovirt.vdsm.jsonrpc.client.TestManagerProvider;
 import org.ovirt.vdsm.jsonrpc.client.reactors.Reactor;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorClient;
 import org.ovirt.vdsm.jsonrpc.client.reactors.ReactorListener;
+import org.ovirt.vdsm.jsonrpc.testutils.TimeDepending;
 
 // Takes a long time to finish
 @RunWith(Theories.class)
@@ -40,6 +42,7 @@ public class HeartbeatTestCase {
     public static int heartbeat_2 = 0;
 
     @Theory
+    @Category(TimeDepending.class)
     public void testSSLHeartbeat(int incoming, int outgoing) {
         TestManagerProvider provider = null;
         Reactor listeningReactor = null;
@@ -69,6 +72,7 @@ public class HeartbeatTestCase {
     }
 
     @Theory
+    @Category(TimeDepending.class)
     public void testPlainHeartbeat(int incoming, int outgoing) {
         Reactor listeningReactor = null;
         Reactor sendingReactor = null;
