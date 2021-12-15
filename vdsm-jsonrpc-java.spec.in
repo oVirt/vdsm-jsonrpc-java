@@ -53,7 +53,6 @@ BuildRequires:	mockito
 BuildRequires:	maven >= 3.5.0
 BuildRequires:	maven-compiler-plugin
 BuildRequires:	maven-enforcer-plugin
-BuildRequires:	maven-install-plugin
 BuildRequires:	maven-jar-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
