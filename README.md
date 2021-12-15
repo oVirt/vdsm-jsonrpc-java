@@ -4,10 +4,6 @@
 
 Welcome to the vdsm-jsonrpc-java source repository.
 
-This repository is hosted on [gerrit.ovirt.org:vdsm-jsonrpc-java](https://gerrit.ovirt.org/#/admin/projects/vdsm-jsonrpc-java)
-and a **backup** of it is hosted on [GitHub:vdsm-jsonrpc-java](https://github.com/oVirt/vdsm-jsonrpc-java)
-
-
 ## How to contribute
 
 ### Submitting patches
@@ -18,7 +14,7 @@ Please submit patches to [GitHub:vdsm-jsonrpc-java](https://github.com/oVirt/vds
 
 ### Found a bug or documentation issue?
 To submit a bug or suggest an enhancement for vdsm-jsonrpc-java please use
-[oVirt Bugzilla for vdsm-jsonrpc-java product](https://bugzilla.redhat.com/enter_bug.cgi?product=vdsm-jsonrpc-java).
+[oVirt Bugzilla for vdsm-jsonrpc-java product](https://bugzilla.redhat.com/enter_bug.cgi?product=vdsm-jsonrpc-java) or [GitHub issues](https://github.com/ovirt/vdsm-jsonrpc-java/issues)
 
 If you find a documentation issue on the oVirt website please navigate and click "Report an issue on GitHub" in the page footer.
 
