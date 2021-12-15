@@ -21,7 +21,7 @@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
 %global	_java_jdk_home /usr/lib/jvm/java-11-openjdk
-%global	_mvn_opts -Pno-test
+
 Summary:	JsonRpc java client (%{name}) for oVirt
 Name:		@PACKAGE_NAME@
 Version:	@PACKAGE_RPM_VERSION@
@@ -38,8 +38,8 @@ AutoReq:	no
 
 BuildArch:	noarch
 
+BuildRequires:  apache-commons-lang3
 BuildRequires:	gcc
-BuildRequires:	apache-commons-lang >= 2.6
 BuildRequires:	jackson-annotations >= 2.9.0
 BuildRequires:	jackson-core >= 2.9.0
 BuildRequires:	jackson-databind >= 2.9.0
@@ -61,7 +61,7 @@ BuildRequires:	maven-surefire-provider-junit
 
 # Explicit mvn imports because 'AutoReq:    no'
 BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
-BuildRequires:	mvn(commons-lang:commons-lang)
+BuildRequires:	mvn(org.apache.commons:commons-lang3)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
 BuildRequires:	mvn(org.slf4j:slf4j-api)
@@ -72,7 +72,7 @@ BuildRequires:	mvn(org.slf4j:slf4j-api)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-javadoc-plugin)
 %endif
 
-Requires:	apache-commons-lang >= 2.6
+Requires:	apache-commons-lang3 >= 3.7
 Requires:	jackson-annotations >= 2.9.0
 Requires:	jackson-core >= 2.9.0
 Requires:	jackson-databind >= 2.9.0
@@ -102,7 +102,7 @@ This package contains the API documentation for %{name}.
 # necessary because jdk 1.8 comes as default with xmvn
 export JAVA_HOME="%{_java_jdk_home}"
 
-%mvn_build -- %{?_mvn_opts}
+%mvn_build
 
 %install
 %mvn_install

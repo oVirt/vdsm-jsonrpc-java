@@ -12,7 +12,7 @@ import java.util.concurrent.Flow.Subscriber;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.EventDecomposer;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
