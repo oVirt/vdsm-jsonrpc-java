@@ -22,6 +22,9 @@ jobs:
 
     name: ${{ matrix.name }}
 
+    env:
+      ARTIFACTS_DIR: exported-artifacts
+
     container:
       image: quay.io/centos/centos:${{ matrix.container-name }}
 
@@ -72,9 +75,6 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v2
 
-    - name: Set up artifacts directory
-      run: echo "ARTIFACTS_DIR=exported-artifacts/build$(rpm -E '%{?dist}')" >> $GITHUB_ENV
-
     - name: Perform build
       run: |
         .automation/build-rpm.sh $ARTIFACTS_DIR
@@ -86,5 +86,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: artifacts
-        path: exported-artifacts/
+        name: rpm-${{ matrix.shortcut }}
+        path: ${{ env.ARTIFACTS_DIR }}
