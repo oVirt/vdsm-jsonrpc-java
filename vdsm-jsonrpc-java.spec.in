@@ -112,6 +112,13 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Fri Dec 20 2021 Artur Socha <asocha@redhat.com> 1.7.0
+- Batch calls support removed
+- Migrated to GitHub and GitHub Actions
+- Apache commons lang bumped to lang3
+- Log4j12 depedency droped
+- Logging improved
+
 * Wed Nov 25 2020 Artur Socha <asocha@redhat.com> 1.6.0
 - Replace org.reactivestreams with standard Java implementation
 
