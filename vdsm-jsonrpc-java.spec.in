@@ -41,9 +41,9 @@ BuildArch:	noarch
 
 BuildRequires:  apache-commons-lang3
 BuildRequires:	gcc
-BuildRequires:	jackson-annotations >= 2.9.0
-BuildRequires:	jackson-core >= 2.9.0
-BuildRequires:	jackson-databind >= 2.9.0
+BuildRequires:	jackson-annotations >= 2.10.0
+BuildRequires:	jackson-core >= 2.10.0
+BuildRequires:	jackson-databind >= 2.10.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	javapackages-tools
 BuildRequires:	slf4j >= 1.7.0
