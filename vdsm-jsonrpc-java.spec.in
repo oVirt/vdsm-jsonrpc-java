@@ -46,8 +46,8 @@ BuildRequires:	jackson-core >= 2.10.0
 BuildRequires:	jackson-databind >= 2.10.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	javapackages-tools
-BuildRequires:	slf4j >= 1.7.0
-BuildRequires:	slf4j-jdk14 >= 1.7.0
+BuildRequires:  mvn(org.slf4j:slf4j-api)                                                                                    
+BuildRequires:  mvn(org.slf4j:slf4j-jdk14)
 BuildRequires:	junit
 BuildRequires:	mockito
 BuildRequires:	maven >= 3.6.0
