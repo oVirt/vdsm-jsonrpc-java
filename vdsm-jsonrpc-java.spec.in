@@ -46,7 +46,6 @@ BuildRequires:	jackson-core >= 2.10.0
 BuildRequires:	jackson-databind >= 2.10.0
 BuildRequires:	java-11-openjdk-devel >= 11.0.4
 BuildRequires:	javapackages-tools
-BuildRequires:	slf4j >= 1.7.0
 BuildRequires:	slf4j-jdk14 >= 1.7.0
 BuildRequires:	junit
 BuildRequires:	mockito
@@ -63,7 +62,6 @@ BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
 BuildRequires:	mvn(org.apache.commons:commons-lang3)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
 BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
-BuildRequires:	mvn(org.slf4j:slf4j-api)
 
 # On EL8 maven-javadoc-plugin has been merged into xmvn , but on Fedora
 # we still need to require it
