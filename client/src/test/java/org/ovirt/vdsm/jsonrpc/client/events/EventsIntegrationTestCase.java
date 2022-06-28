@@ -143,7 +143,7 @@ public class EventsIntegrationTestCase {
                 try {
                     this.client.sendMessage(MESSAGE_CONTENT.getBytes());
                     TimeUnit.MILLISECONDS.sleep(TIMEOUT);
-                } catch (ClientConnectionException | InterruptedException e) {
+                } catch (InterruptedException e) {
                     this.stop();
                     fail();
                 }

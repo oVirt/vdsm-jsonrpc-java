@@ -11,6 +11,8 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.rmi.ConnectException;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
@@ -325,9 +327,8 @@ public abstract class ReactorClient {
      * Sends message using provided byte array.
      *
      * @param message - content of the message to sent.
-     * @throws ClientConnectionException when issues with connection.
      */
-    public abstract void sendMessage(byte[] message) throws ClientConnectionException;
+    public abstract void sendMessage(byte[] message);
 
     /**
      * Reads provided buffer.

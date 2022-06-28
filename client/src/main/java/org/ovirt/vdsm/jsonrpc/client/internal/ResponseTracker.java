@@ -131,15 +131,11 @@ public class ResponseTracker implements Runnable {
                     handleFailure(tracking, id, "Too many attempts");
                     continue;
                 }
-                try {
-                    final byte[] message = jsonToByteArray(tracking.getRequest().toJson());
-                    if (log.isDebugEnabled()){
-                        log.debug("Message to be sent {}", new String(message, StandardCharsets.UTF_8));
-                    }
-                    tracking.getClient().sendMessage(message);
-                } catch (ClientConnectionException e) {
-                    handleFailure(tracking, id, ExceptionUtils.getStackTrace(e));
+                final byte[] message = jsonToByteArray(tracking.getRequest().toJson());
+                if (log.isDebugEnabled()){
+                    log.debug("Message to be sent {}", new String(message, StandardCharsets.UTF_8));
                 }
+                tracking.getClient().sendMessage(message);
                 tracking.setTimeout(getTimeout(context.getTimeout(), context.getTimeUnit()));
             } else {
                 log.debug("Tracking timeout detected for request id {} ", id.asText());

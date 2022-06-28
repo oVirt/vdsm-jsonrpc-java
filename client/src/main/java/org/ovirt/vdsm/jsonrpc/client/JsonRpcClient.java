@@ -123,7 +123,7 @@ public class JsonRpcClient {
         this.tracker.removeCall(((Call)call).getId());
     }
 
-    private void retryCall(final JsonRpcRequest request, final JsonRpcCall call) throws ClientConnectionException {
+    private void retryCall(final JsonRpcRequest request, final JsonRpcCall call) {
         ResponseTracking tracking =
                 new ResponseTracking(request, call, new RetryContext(policy), getTimeout(this.policy.getRetryTimeOut(),
                         this.policy.getTimeUnit()), this.client, !Objects.equals(request.getMethod(), "Host.ping"));

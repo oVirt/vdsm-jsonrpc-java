@@ -25,8 +25,7 @@ public class SSLStompReactor extends Reactor {
     }
 
     @Override
-    public ReactorClient createClient(Reactor reactor, Selector selector, String hostname, int port)
-            throws ClientConnectionException {
+    public ReactorClient createClient(Reactor reactor, Selector selector, String hostname, int port) {
         return new SSLStompClient(reactor, selector, hostname, port, this.sslContext);
     }
 
