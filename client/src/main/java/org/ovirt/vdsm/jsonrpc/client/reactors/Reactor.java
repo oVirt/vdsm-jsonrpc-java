@@ -146,7 +146,7 @@ public abstract class Reactor extends Thread {
     protected abstract ReactorClient createClient(Reactor reactor,
             Selector selector,
             String hostname,
-            int port) throws ClientConnectionException;
+            int port);
 
     protected abstract ReactorClient createConnectedClient(Reactor reactor, Selector selector, String hostname,
             int port, SocketChannel channel) throws ClientConnectionException;

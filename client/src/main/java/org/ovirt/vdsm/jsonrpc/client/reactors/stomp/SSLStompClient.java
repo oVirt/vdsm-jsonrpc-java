@@ -74,7 +74,7 @@ public class SSLStompClient extends SSLClient {
     }
 
     @Override
-    public void sendMessage(byte[] message) throws ClientConnectionException {
+    public void sendMessage(byte[] message) {
         try {
             waitForConnect();
         } finally {

@@ -2,7 +2,6 @@ package org.ovirt.vdsm.jsonrpc.client.reactors.stomp;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.SSLStompClientTestCase.generateRandomMessage;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_REQUEST_QUEUE;
 import static org.ovirt.vdsm.jsonrpc.client.reactors.stomp.StompCommonClient.DEFAULT_RESPONSE_QUEUE;
@@ -54,13 +53,10 @@ public class StompClientTestCase {
             ExecutionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(1);
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, 0, client -> client.addEventListener(_message -> {
-                    try {
-                        client.sendMessage(_message);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                this.listeningReactor.createListener(HOSTNAME,
+                        0,
+                        client -> client.addEventListener(client::sendMessage)
+                );
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);

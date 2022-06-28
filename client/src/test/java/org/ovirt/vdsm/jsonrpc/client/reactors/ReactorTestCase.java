@@ -56,13 +56,7 @@ public class ReactorTestCase {
         int port = FreePorts.findFreePort();
         final Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME,
                 port,
-                client -> client.addEventListener(message -> {
-                    try {
-                        client.sendMessage(message);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                client -> client.addEventListener(client::sendMessage));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
         assertNotNull(listener);
@@ -105,13 +99,7 @@ public class ReactorTestCase {
         int port = FreePorts.findFreePort();
         Future<ReactorListener> futureListener = this.reactorForListener.createListener(HOSTNAME,
                 port,
-                client -> client.addEventListener(message -> {
-                    try {
-                        client.sendMessage(message);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                client -> client.addEventListener(client::sendMessage));
 
         ReactorListener listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
         assertNotNull(listener);
@@ -135,13 +123,7 @@ public class ReactorTestCase {
                 // 2. and delayed TCP packets(fragments) more details at [1]
                 // [1] https://vincent.bernat.ch/en/blog/2014-tcp-time-wait-state-linux
                 port,
-                _client -> _client.addEventListener(message -> {
-                    try {
-                        _client.sendMessage(message);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                _client -> _client.addEventListener(_client::sendMessage));
 
         listener = futureListener.get(TIMEOUT_SEC, TimeUnit.SECONDS);
 

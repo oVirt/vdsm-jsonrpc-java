@@ -87,13 +87,10 @@ public class SSLStompClientTestCase {
         queue.poll(TIMEOUT_SEC, TimeUnit.SECONDS);
 
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, port, client1 -> client1.addEventListener(msg -> {
-                    try {
-                        client1.sendMessage(msg);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                this.listeningReactor.createListener(HOSTNAME,
+                        port,
+                        client1 -> client1.addEventListener(client1::sendMessage)
+                );
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);
@@ -127,13 +124,10 @@ public class SSLStompClientTestCase {
     public void testEcho(String message) throws InterruptedException, ExecutionException, ClientConnectionException {
         final BlockingQueue<byte[]> queue = new ArrayBlockingQueue<>(5);
         Future<ReactorListener> futureListener =
-                this.listeningReactor.createListener(HOSTNAME, 0, client -> client.addEventListener(msg -> {
-                    try {
-                        client.sendMessage(msg);
-                    } catch (ClientConnectionException e) {
-                        fail();
-                    }
-                }));
+                this.listeningReactor.createListener(HOSTNAME,
+                        0,
+                        client -> client.addEventListener(client::sendMessage)
+                );
 
         ReactorListener listener = futureListener.get();
         assertNotNull(listener);
