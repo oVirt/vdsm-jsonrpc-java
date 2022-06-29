@@ -110,6 +110,11 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Mon Jul 25 2022 Artur Socha <asocha@redhat.com> 1.7.2
+- Fix expired SSL certificates validation on connect
+- Fix bogus date in changelog
+- Drop slf4j depedency
+
 * Mon Dec 20 2021 Artur Socha <asocha@redhat.com> 1.7.1
 - Jackson upgrade to 2.12.1
 
