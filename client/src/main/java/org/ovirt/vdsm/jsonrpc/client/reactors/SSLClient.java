@@ -9,6 +9,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -37,6 +38,7 @@ public abstract class SSLClient extends StompCommonClient {
     protected SSLEngineNioHelper nioEngine;
     private SSLContext sslContext;
     private boolean client;
+
 
     public SSLClient(Reactor reactor, Selector selector, String hostname, int port, SSLContext sslctx) {
         super(reactor, hostname, port);
@@ -136,6 +138,10 @@ public abstract class SSLClient extends StompCommonClient {
             SSLEngine sslEngine = createSSLEngine(this.client);
             this.nioEngine = new SSLEngineNioHelper(channel, sslEngine, callback, this);
             this.nioEngine.beginHandshake();
+            this.nioEngine.verifyPeerCertificates();
+        } catch (CertificateException certificateException){
+            logException(log, "Certificate validation error", certificateException);
+            throw new ClientConnectionException(certificateException);
         } catch (SSLException | InterruptedException | ExecutionException e) {
             logException(log, "Connection issues during ssl client creation", e);
             throw new ClientConnectionException(e);
@@ -168,4 +174,5 @@ public abstract class SSLClient extends StompCommonClient {
 
         return null;
     }
+
 }

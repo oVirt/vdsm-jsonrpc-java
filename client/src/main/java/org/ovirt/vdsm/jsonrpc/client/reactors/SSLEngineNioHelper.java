@@ -3,22 +3,33 @@ package org.ovirt.vdsm.jsonrpc.client.reactors;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.Clock;
+import java.util.Date;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
 import org.ovirt.vdsm.jsonrpc.client.ClientConnectionException;
 import org.ovirt.vdsm.jsonrpc.client.utils.OneTimeCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 
 /**
  * Helper object responsible for low level ssl communication.
  *
  */
 public class SSLEngineNioHelper {
-
+    protected static Logger log = LoggerFactory.getLogger(SSLEngineNioHelper.class);
     private static final int MAX_ATTEMPTS = 10;
+    private static final long PEER_CERTS_FETCH_DELAY_MS = 50;
     private final SocketChannel channel;
     private final SSLEngine engine;
     private final ByteBuffer appBuffer;
@@ -27,6 +38,7 @@ public class SSLEngineNioHelper {
     private final ByteBuffer packatPeerBuffer;
     private final SSLClient client;
     private OneTimeCallback callback;
+
 
     public SSLEngineNioHelper(SocketChannel channel, SSLEngine engine, OneTimeCallback callback, SSLClient client) {
         this.channel = channel;
@@ -164,4 +176,38 @@ public class SSLEngineNioHelper {
     public SSLEngine getSSLEngine() {
         return this.engine;
     }
+
+    public void verifyPeerCertificates() throws ClientConnectionException, CertificateException {
+        int currentIteration = 1;
+        // we need to fail connection as soon as possible to allow the host to be moved
+        // into non-responsive mode
+        // re-try mechanism is needed because sometimes (few)first attempts to get peer certificates
+        // fail because SSL session is invalid/empty (happens too soon)
+        while (currentIteration <= MAX_ATTEMPTS) {
+            try {
+                SSLSession sslSession = engine.getSession();
+                if (sslSession == null || !sslSession.isValid()) {
+                    if (currentIteration == MAX_ATTEMPTS) {
+                        throw new ClientConnectionException("SSL session is invalid");
+                    }
+                    Thread.sleep(PEER_CERTS_FETCH_DELAY_MS);
+                } else {
+                    // once we have peer certificates then lets check the validity
+                    for (Certificate cert : sslSession.getPeerCertificates()) {
+                        if (!(cert instanceof X509Certificate)) {
+                            throw new IllegalStateException("Not a x509 certificate");
+                        }
+                        final X509Certificate x509Cert = (X509Certificate) cert;
+                        x509Cert.checkValidity();
+                    }
+                    return;
+                }
+            } catch (SSLPeerUnverifiedException | InterruptedException e) {
+                logException(log, "Failed to get peer certificates", e);
+            }
+            currentIteration++;
+        }
+        throw new ClientConnectionException("Could not fetch peer certificates");
+    }
+
 }

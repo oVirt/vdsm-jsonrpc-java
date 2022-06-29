@@ -42,6 +42,9 @@ import org.slf4j.LoggerFactory;
  *
  */
 public abstract class ReactorClient {
+
+    public static final List<Certificate> PEER_CERTIFICATE_EMPTY_LIST = Collections.unmodifiableList(new ArrayList<>());
+
     public interface MessageListener {
         void onMessageReceived(byte[] message);
     }
@@ -410,7 +413,7 @@ public abstract class ReactorClient {
     /**
      * @return the peer certificates of the current session
      */
-    public List<Certificate> getPeerCertificates() {
-        throw new UnsupportedOperationException();
+    public List<Certificate> getPeerCertificates() throws ClientConnectionException {
+        return PEER_CERTIFICATE_EMPTY_LIST;
     }
 }
