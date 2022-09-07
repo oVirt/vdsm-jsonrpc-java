@@ -9,6 +9,8 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcClient;
 import org.ovirt.vdsm.jsonrpc.client.JsonRpcEvent;
@@ -37,6 +39,8 @@ public final class ResponseWorker extends Thread {
     private final ResponseTracker tracker;
     private final EventPublisher publisher;
     private static final Logger log = LoggerFactory.getLogger(ResponseWorker.class);
+    private static final Pattern SENSITIVE_DATA_PATTERN = Pattern.compile("(\"_X_[a-zA-Z0-9_]+\": *)\"[^\"]+\"");
+
     static {
         MAPPER = new ObjectMapper(new JsonFactoryBuilder()
                 .configure(JsonFactory.Feature.INTERN_FIELD_NAMES, false)
@@ -93,7 +97,12 @@ public final class ResponseWorker extends Thread {
                     break;
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("Message received: " + new String(contextRef.get().getMessage(), UTF8));
+                    String message = new String(contextRef.get().getMessage(), UTF8);
+                    Matcher matcher = SENSITIVE_DATA_PATTERN.matcher(message);
+                    if (matcher.find()) {
+                        message = matcher.replaceAll("$1\"***\"");
+                    }
+                    log.debug("Message received: " + message);
                 }
                 JsonNode rootNode = MAPPER.readTree(contextRef.get().getMessage());
                 if (!rootNode.isArray()) {
