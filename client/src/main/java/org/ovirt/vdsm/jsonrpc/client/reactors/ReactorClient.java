@@ -141,7 +141,7 @@ public abstract class ReactorClient {
             this.closing.set(false);
             clean();
             postConnect(getPostConnectCallback());
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ClientConnectionException | InterruptedException | ExecutionException e) {
             logException(log, "Exception during connection", e);
             final String message = "Connection issue " + ExceptionUtils.getRootCause(e).getMessage();
             scheduleClose(message);
