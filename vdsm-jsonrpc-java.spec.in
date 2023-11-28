@@ -27,7 +27,7 @@ Summary:	JsonRpc java client (%{name}) for oVirt
 Name:		@PACKAGE_NAME@
 Version:	@PACKAGE_RPM_VERSION@
 Release:	@PACKAGE_RPM_RELEASE@%{?release_suffix}%{?dist}
-License:	LGPLv2+
+License:	LGPL-2.0-or-later
 URL:		http://www.ovirt.org
 Source:		http://resources.ovirt.org/pub/ovirt-master-snapshot/src/%{name}/%{name}-%{package_version}.tar.gz
 Group:		Development/Libraries
@@ -110,6 +110,13 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Tue Nov 28 2023 Sandro Bonazzola <sandro.bonazzola@gmail.com> - 1.7.3
+- Rebase on upstream 1.7.3.
+- Migrated to SPDX license.
+- Disconnect the session after SSL handshake issue.
+- Replace secret data with asterisks in debug logs.
+- Bump fasterxml jackson to avoid CVEs.
+
 * Mon Jul 25 2022 Artur Socha <asocha@redhat.com> 1.7.2
 - Fix expired SSL certificates validation on connect
 - Fix bogus date in changelog
