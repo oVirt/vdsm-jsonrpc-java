@@ -17,6 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
+# Workaround for build issues on CBS due to https://bugzilla.redhat.com/2128991
+%if 0%{!?block_maven_38:1}
+%global block_maven_38 0
+%endif
+
 %global	package_version @PACKAGE_VERSION@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
@@ -56,6 +61,22 @@ BuildRequires:	maven-jar-plugin
 BuildRequires:	maven-local
 BuildRequires:	maven-source-plugin
 BuildRequires:	maven-surefire-provider-junit
+
+%if %{block_maven_38}
+# Block packages from maven:3.8 to pass CBS build due to https://bugzilla.redhat.com/2128991
+BuildRequires: maven < 1:3.8.0
+BuildRequires: maven-lib < 1:3.8.0
+BuildRequires: maven-resolver < 1:1.7.0
+BuildRequires: maven-shared-utils < 3.3.4-3
+BuildRequires: maven-wagon < 3.5.0
+BuildRequires: plexus-cipher < 1.8
+BuildRequires: plexus-classworlds < 2.6.0-11
+BuildRequires: plexus-containers-component-annotations < 2.1.1
+BuildRequires: plexus-interpolation < 1.26-11
+BuildRequires: plexus-sec-dispatcher < 1.5
+BuildRequires: plexus-utils < 3.3.0-10
+BuildRequires: sisu < 1:0.3.5
+%endif
 
 # Explicit mvn imports because 'AutoReq:    no'
 BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
