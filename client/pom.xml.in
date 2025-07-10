@@ -34,9 +34,9 @@
 		</license>
 	</licenses>
 	<scm>
-		<connection>scm:git://gerrit.ovirt.org/@PACKAGE_NAME@</connection>
-		<developerConnection>scm:git:gerrit.ovirt.org:@PACKAGE_NAME@</developerConnection>
-		<url>http://gerrit.ovirt.org/gitweb?p=@PACKAGE_NAME@.git</url>
+		<connection>scm:git:git://github.com/oVirt//@PACKAGE_NAME@</connection>
+		<developerConnection>scm:git:ssh://git@github.com/oVirt/@PACKAGE_NAME@</developerConnection>
+		<url>https://github.com/oVirt/@PACKAGE_NAME@.git</url>
 	</scm>
 	<groupId>org.ovirt.@PACKAGE_NAME@</groupId>
 	<artifactId>@PACKAGE_NAME@-client</artifactId>
