@@ -25,19 +25,6 @@
 
 	<name>@PACKAGE_NAME@-client</name>
 	<description>vdsm json rpc client</description>
-	<url>http://ovirt.org</url>
-	<licenses>
-		<license>
-			<name>GNU Lesser General Public License, version 2.1</name>
-			<url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<scm>
-		<connection>scm:git:git://github.com/oVirt//@PACKAGE_NAME@</connection>
-		<developerConnection>scm:git:ssh://git@github.com/oVirt/@PACKAGE_NAME@</developerConnection>
-		<url>https://github.com/oVirt/@PACKAGE_NAME@.git</url>
-	</scm>
 	<groupId>org.ovirt.@PACKAGE_NAME@</groupId>
 	<artifactId>@PACKAGE_NAME@-client</artifactId>
 	<version>@PACKAGE_MAVEN_VERSION@@MAVEN_VERSION_SNAPSHOT@</version>
@@ -56,67 +43,44 @@
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-			<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 			<version>${commons-lang.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-jdk14</artifactId>
+			<version>${slf4j-jdk14.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.0</version>
-                    <configuration>
-                        <skipTests>${skipTests}</skipTests>
-                        <argLine>--illegal-access=permit</argLine>
-                        <parallel>all</parallel>
-                        <threadCount>4</threadCount>
-                        <perCoreThreadCount>true</perCoreThreadCount>
-                        <forkCount>4</forkCount>
-                        <reuseForks>true</reuseForks>
-                        <systemProperties>
-                        <property>
-                            <name>java.util.logging.config.file</name>
-                            <value>src/test/resources/logging.properties</value>
-                        </property>
-                        </systemProperties>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-							<goal>test-jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<release>11</release>
-					<source>11</source>
-					<target>11</target>
-				</configuration>
 				<executions>
 					<execution>
 						<id>default-testCompile</id>
@@ -132,89 +96,18 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.7</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.0.1</version>
-				<executions>
-					<execution>
-						<id>attach-javadoc</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 			</plugin>
 		</plugins>
-		<finalName>${project.artifactId}-${project.version}</finalName>
-		<sourceDirectory>src/main/java</sourceDirectory>
-		<outputDirectory>target/classes</outputDirectory>
-		<testSourceDirectory>src/test/java</testSourceDirectory>
-		<testOutputDirectory>target/test-classes</testOutputDirectory>
-		<directory>target</directory>
 	</build>
 
 	<profiles>
 		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>1.4</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-								<configuration>
-									<keyname>${gpg.keyname}</keyname>
-									<passphrase>${gpg.passphrase}</passphrase>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>timedependant-tests-disabled</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<configuration>
-							<excludedGroups>
-								org.ovirt.vdsm.jsonrpc.testutils.TimeDepending
-							</excludedGroups>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
-			<id>performance-tests-disabled</id>
+			<id>slow-tests-disabled</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
 			</activation>
@@ -225,7 +118,8 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<configuration>
 							<excludedGroups>
-								org.ovirt.vdsm.jsonrpc.testutils.Performance
+								org.ovirt.vdsm.jsonrpc.testutils.Performance,
+								org.ovirt.vdsm.jsonrpc.testutils.TimeDepending
 							</excludedGroups>
 						</configuration>
 					</plugin>
