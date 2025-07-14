@@ -17,15 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 
-# Workaround for build issues on CBS due to https://bugzilla.redhat.com/2128991
-%if 0%{!?block_maven_38:1}
-%global block_maven_38 0
-%endif
 
 %global	package_version @PACKAGE_VERSION@
 %global	package_maven_version @PACKAGE_MAVEN_VERSION@
 
-%global	_java_jdk_home /usr/lib/jvm/java-21-openjdk
 %global	_mvn_opts -DskipTests
 
 Summary:	JsonRpc java client (%{name}) for oVirt
@@ -37,64 +32,24 @@ URL:		http://www.ovirt.org
 Source:		http://resources.ovirt.org/pub/ovirt-master-snapshot/src/%{name}/%{name}-%{package_version}.tar.gz
 Group:		Development/Libraries
 
-# We need to disable automatic generation of "Requires: java-headless >=1:11"
-# by xmvn, because JDK 11 doesn't provide java-headless, but it
-# provides java-11-headless
-AutoReq:	no
-
 BuildArch:	noarch
 
 BuildRequires:  apache-commons-lang3
 BuildRequires:	gcc
-BuildRequires:	jackson-annotations >= 2.10.0
-BuildRequires:	jackson-core >= 2.10.0
-BuildRequires:	jackson-databind >= 2.10.0
-BuildRequires:	java-11-openjdk-devel >= 11.0.4
-BuildRequires:	javapackages-tools
+BuildRequires:	jackson-annotations >= 2.18.0
+BuildRequires:	jackson-core >= 2.18.0
+BuildRequires:	jackson-databind >= 2.18.0
+BuildRequires:  maven-local-openjdk21
+BuildRequires:  maven-source-plugin
 BuildRequires:	slf4j-jdk14 >= 1.7.0
 BuildRequires:	junit
 BuildRequires:	mockito
-BuildRequires:	maven >= 3.6.0
-BuildRequires:	maven-compiler-plugin
-BuildRequires:	maven-enforcer-plugin
-BuildRequires:	maven-jar-plugin
-BuildRequires:	maven-local
-BuildRequires:	maven-source-plugin
-BuildRequires:	maven-surefire-provider-junit
-
-%if %{block_maven_38}
-# Block packages from maven:3.8 to pass CBS build due to https://bugzilla.redhat.com/2128991
-BuildRequires: maven < 1:3.8.0
-BuildRequires: maven-lib < 1:3.8.0
-BuildRequires: maven-resolver < 1:1.7.0
-BuildRequires: maven-shared-utils < 3.3.4-3
-BuildRequires: maven-wagon < 3.5.0
-BuildRequires: plexus-cipher < 1.8
-BuildRequires: plexus-classworlds < 2.6.0-11
-BuildRequires: plexus-containers-component-annotations < 2.1.1
-BuildRequires: plexus-interpolation < 1.26-11
-BuildRequires: plexus-sec-dispatcher < 1.5
-BuildRequires: plexus-utils < 3.3.0-10
-BuildRequires: sisu < 1:0.3.5
-%endif
-
-# Explicit mvn imports because 'AutoReq:    no'
-BuildRequires:	mvn(com.fasterxml.jackson.core:jackson-databind)
-BuildRequires:	mvn(org.apache.commons:commons-lang3)
-BuildRequires:	mvn(org.apache.maven.plugins:maven-compiler-plugin)
-BuildRequires:	mvn(org.apache.maven.plugins:maven-source-plugin)
-
-# On EL8 maven-javadoc-plugin has been merged into xmvn , but on Fedora
-# we still need to require it
-%if 0%{?fedora} >=30
-BuildRequires:	mvn(org.apache.maven.plugins:maven-javadoc-plugin)
-%endif
 
 Requires:	apache-commons-lang3 >= 3.7
-Requires:	jackson-annotations >= 2.9.0
-Requires:	jackson-core >= 2.9.0
-Requires:	jackson-databind >= 2.9.0
-Requires:	java-11-openjdk-headless >= 11.0.4
+Requires:	jackson-annotations >= 2.18.0
+Requires:	jackson-core >= 2.18.0
+Requires:	jackson-databind >= 2.18.0
+Requires:	(java-11-openjdk-headless or java-21-openjdk-headless)
 Requires:	slf4j >= 1.7.0
 
 %description
@@ -109,16 +64,11 @@ This package contains the API documentation for %{name}.
 
 %prep
 %setup -q -n %{name}-%{package_version}
-%if 0%{?rhel} > 7
-# No need for maven-javadoc-plugin in RHEL8, xmvn will take care of it.
+# No need for maven-javadoc-plugin in RHEL8+, xmvn will take care of it.
 %pom_remove_plugin :maven-javadoc-plugin client/pom.xml.in
-%endif
 
 %build
 %configure
-
-# necessary because jdk 1.8 comes as default with xmvn
-export JAVA_HOME="%{_java_jdk_home}"
 
 %mvn_build -- %{?_mvn_opts}
 
@@ -131,6 +81,12 @@ export JAVA_HOME="%{_java_jdk_home}"
 %files javadoc -f .mfiles-javadoc
 
 %changelog
+* Fri Jul 11 2025 oVirt Developers <devel@ovirt.org> - 1.7.4
+- Add support to build with Java 21
+- Add CentOS Stream 10 support.
+- Remove CentOS Stream 8 support.
+- Remove fixes for past issues
+
 * Tue Nov 28 2023 Sandro Bonazzola <sandro.bonazzola@gmail.com> - 1.7.3
 - Rebase on upstream 1.7.3.
 - Migrated to SPDX license.
