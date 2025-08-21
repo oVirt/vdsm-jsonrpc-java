@@ -67,6 +67,9 @@ This package contains the API documentation for %{name}.
 # No need for maven-javadoc-plugin in RHEL8+, xmvn will take care of it.
 %pom_remove_plugin :maven-javadoc-plugin client/pom.xml.in
 
+# No need for central-publishing-maven-plugin, this is only used for deployments.
+%pom_remove_plugin org.sonatype.central:central-publishing-maven-plugin pom.xml.in
+
 %build
 %configure
 
