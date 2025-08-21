@@ -13,7 +13,7 @@ installdeps:
 		jackson-annotations \
 		jackson-core \
 		jackson-databind \
-		java-11-openjdk-devel \
+		java-21-openjdk-devel \
 		javapackages-tools \
 		make \
 		maven-source-plugin \
