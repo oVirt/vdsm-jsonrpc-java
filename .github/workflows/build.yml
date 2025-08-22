@@ -99,5 +99,5 @@ jobs:
       - name: Publish snapshot
         run: |
           ./autogen.sh
-          ./configure
+          ./configure --with-maven-version-snapshot
           mvn --batch-mode -DskipTests deploy
