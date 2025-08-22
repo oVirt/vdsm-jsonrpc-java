@@ -97,4 +97,7 @@ jobs:
             }]
 
       - name: Publish snapshot
-        run: mvn --batch-mode -DskipTests deploy
+        run: |
+          ./autogen.sh
+          ./configure
+          mvn --batch-mode -DskipTests deploy
