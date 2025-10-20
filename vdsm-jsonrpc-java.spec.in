@@ -84,7 +84,7 @@ This package contains the API documentation for %{name}.
 %files javadoc -f .mfiles-javadoc
 
 %changelog
-* Fri Jul 11 2025 oVirt Developers <devel@ovirt.org> - 1.7.4
+* Mon Oct 20 2025 Jean-Louis Dupond <jean-louis@dupond.be> - 1.7.4-1
 - Add support to build with Java 21
 - Add CentOS Stream 10 support.
 - Remove CentOS Stream 8 support.
