@@ -119,7 +119,10 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${maven-surefire-plugin.version}</version>
 					<configuration>
-						<argLine>--illegal-access=permit</argLine>
+						<argLine>
+							--add-opens java.base/java.lang=ALL-UNNAMED
+							--add-opens java.base/java.lang.reflect=ALL-UNNAMED
+						</argLine>
 						<parallel>all</parallel>
 						<threadCount>4</threadCount>
 						<perCoreThreadCount>true</perCoreThreadCount>
