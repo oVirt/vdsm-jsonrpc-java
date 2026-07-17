@@ -19,7 +19,27 @@
 
 AUTOMAKE_OPTIONS = foreign 1.9
 ACLOCAL_AMFLAGS = -I m4
+SHELL := /bin/bash
 
+TMPREPOS = tmp.repos
+RPMBUILD_ARGS := --define="_topdir `pwd`/$(TMPREPOS)"
+RPMBUILD_ARGS += $(if $(RELEASE_SUFFIX), --define="release_suffix $(RELEASE_SUFFIX)")
+
+srpm: dist
+	rm -fr "$(TMPREPOS)"
+	mkdir -p $(TMPREPOS)/{SPECS,RPMS,SRPMS,SOURCES}
+	rpmbuild $(RPMBUILD_ARGS) -ts "$(PACKAGE_TARNAME)-$(PACKAGE_VERSION).tar.gz"
+	@echo
+	@echo "srpm available at '$(TMPREPOS)'"
+	@echo
+
+rpm: srpm
+	rpmbuild $(RPMBUILD_ARGS) --rebuild "$(TMPREPOS)"/SRPMS/*.src.rpm
+	@echo
+	@echo "rpm(s) available at '$(TMPREPOS)'"
+	@echo
+
+.PHONY: srpm rpm
 MAINTAINERCLEANFILES = \
 	config.log config.status \
 	$(srcdir)/Makefile.in \
@@ -46,7 +66,7 @@ dist_noinst_DATA = \
 	$(NULL)
 
 clean-local:
-	rm -fr target
+	rm -fr target tmp.repos
 if !WITH_DIST_ONLY
 	$(MVN) clean
 endif
