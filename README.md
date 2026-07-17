@@ -1,6 +1,5 @@
 # JSON RPC Java client (vdsm-jsonrpc-java) for oVirt
 
-[![Copr build status](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/vdsm-jsonrpc-java/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/ovirt/ovirt-master-snapshot/package/vdsm-jsonrpc-java/)
 [![Maven Central](https://img.shields.io/maven-central/v/org.ovirt.vdsm-jsonrpc-java/vdsm-jsonrpc-java-client.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/org.ovirt.vdsm-jsonrpc-java/vdsm-jsonrpc-java-client)
 
 Welcome to the vdsm-jsonrpc-java source repository.
