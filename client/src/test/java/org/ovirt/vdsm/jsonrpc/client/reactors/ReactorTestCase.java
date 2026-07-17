@@ -118,10 +118,6 @@ public class ReactorTestCase {
         assertTrue(closeTask.isDone());
 
         futureListener = this.reactorForListener.createListener(HOSTNAME,
-                //fixme this port is occasionally not free. Most likely it is because of combination of
-                // 1. its state in TIME_WAIT where it enters after listener.close()
-                // 2. and delayed TCP packets(fragments) more details at [1]
-                // [1] https://vincent.bernat.ch/en/blog/2014-tcp-time-wait-state-linux
                 port,
                 _client -> _client.addEventListener(_client::sendMessage));
 

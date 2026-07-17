@@ -2,6 +2,7 @@ package org.ovirt.vdsm.jsonrpc.client.reactors;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.StandardSocketOptions;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -45,6 +46,7 @@ public final class ReactorListener {
         serverSocketChannel.configureBlocking(false);
 
         try {
+            serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT, this);
             log.debug("Binding to {}", address);
             serverSocketChannel.bind(address);
@@ -77,6 +79,7 @@ public final class ReactorListener {
                 return null;
             }
             conn.configureBlocking(false);
+            conn.setOption(StandardSocketOptions.SO_REUSEADDR, true);
             InetSocketAddress address = (InetSocketAddress) conn.getRemoteAddress();
 
             client = this.reactor.createConnectedClient(this.reactor,
