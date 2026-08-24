@@ -71,6 +71,10 @@ public class EventsThroughputTestCase {
             Thread generator = new Thread(gen);
             generator.start();
             gen.stop(TIMEOUT);
+            try {
+                generator.join();
+            } catch (InterruptedException ignored) {
+            }
             unsubscribe();
         }
         System.out.println("Min value " + Collections.min(this.result));
