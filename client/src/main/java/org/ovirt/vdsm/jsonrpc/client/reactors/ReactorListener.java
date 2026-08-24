@@ -99,6 +99,12 @@ public final class ReactorListener {
             } catch (IOException e) {
                 // Ignore
             }
+            // flush the cancelled key so the OS port is released before the next bind
+            try {
+                selector.selectNow();
+            } catch (IOException e) {
+                // Ignore
+            }
             return null;
         });
         this.reactor.queueFuture(task);
