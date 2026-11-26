@@ -29,6 +29,8 @@ import static org.ovirt.vdsm.jsonrpc.client.utils.JsonUtils.logException;
 public class SSLEngineNioHelper {
     protected static Logger log = LoggerFactory.getLogger(SSLEngineNioHelper.class);
     private static final int MAX_ATTEMPTS = 10;
+    private static final int MAX_STALLED_ATTEMPTS = 100;
+    private static final long STALL_BACKOFF_MS = 10;
     private static final long PEER_CERTS_FETCH_DELAY_MS = 50;
     private final SocketChannel channel;
     private final SSLEngine engine;
@@ -102,7 +104,9 @@ public class SSLEngineNioHelper {
     public void write(ByteBuffer buff) throws IOException {
         if (buff != this.appBuffer) {
             int attempts = 0;
+            int stalled = 0;
             while (buff.hasRemaining()) {
+                int remainingBeforeWrap = buff.remaining();
                 SSLEngineResult result = this.engine.wrap(buff, this.packetBuffer);
                 if (SSLEngineResult.Status.CLOSED == result.getStatus()) {
                     return;
@@ -119,6 +123,22 @@ public class SSLEngineNioHelper {
                     }
                 }
                 this.packetBuffer.compact();
+                if (buff.remaining() < remainingBeforeWrap) {
+                    stalled = 0;
+                } else if (++stalled > MAX_STALLED_ATTEMPTS) {
+                    // engine.wrap() consumed nothing and the channel accepted nothing
+                    // for a while; fail so the reactor closes the connection instead
+                    // of spinning in this loop forever
+                    throw new IOException(
+                            "SSLEngine.wrap() made no progress after " + stalled + " attempts");
+                } else {
+                    try {
+                        Thread.sleep(STALL_BACKOFF_MS);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Interrupted while writing to the channel", e);
+                    }
+                }
             }
             return;
         }
